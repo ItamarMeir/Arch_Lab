@@ -37,4 +37,27 @@ entity tristate is
 architecture tri of tristate is begin
     output1 <= input1 when en ='0' else (others => 'z');
     end tri;
----------------
+
+-------Shifter--------------
+entity shifter is
+    port (inp : in std_logic_vector (3 downto 0);
+        sel : in integer (0 to 4);
+        outp : out std_logic_vector (7 downto 0);
+            );
+
+architecture shifter of shifter is 
+    type vect is array (7 downto 0) of std_logic;
+    type matrix is array (integer range 0 to 4) of vect;
+    signal row : matrix;
+    
+    row(0) <= "0000" & inp;
+    G1: for i in 1 to 4 generate
+            row(i) <= row(i-1) (6 downto 0) & '0';
+        end generate;
+        outp <= row(sel);
+    
+    end shifter;
+
+
+
+
