@@ -9,13 +9,13 @@ architecture rtl of tb_FA is
     component fa is
     port (x,y,cin : in std_logic;
           s,cout : out std_logic);
-        end component;
+    end component;
 
-    signal x,y,cin.s,cout : std_logic;
+    signal x, y, cin, s, cout : std_logic;
 
 begin
 
-    tester : FA port map (
+    tester : fa port map (
         x => x, y => y, cin => cin, s => s, cout => cout
     );
   ----------- start sim -------
