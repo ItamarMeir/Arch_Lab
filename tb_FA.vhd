@@ -7,8 +7,8 @@ end tb_FA;
 architecture rtl of tb_FA is
 
     component fa is
-    port (x,y,cin : in std_logic;
-          s,cout : out std_logic);
+    port (x, y, cin : in std_logic;
+          s, cout : out std_logic);
     end component;
 
     signal x, y, cin, s, cout : std_logic;
@@ -23,7 +23,7 @@ begin
     begin
         x <= '0';
         wait for 50 ns;
-        x <= not b;
+        x <= not x;
         wait for 50 ns;
     end process tb_x;
 
@@ -37,7 +37,9 @@ begin
 
    tb_cin : process
     begin
-        cin <= '0', '1' after 200 ns;
+        cin <= '0';
+        wait for 200 ns;
+        cin <= '1';
         wait;
     end process tb_cin;
 
