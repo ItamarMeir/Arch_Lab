@@ -2,6 +2,7 @@ library IEEE;
 use ieee.std_logic_1164.all;
 
 package aux_package is
+
 --------------------------------------------------------
 	component top is
 	GENERIC (n : INTEGER := 8;
@@ -22,6 +23,22 @@ package aux_package is
 	end component;
 ---------------------------------------------------------	
 	
+	component Logic is
+	GENERIC (
+			CONSTANT n : INTEGER := 8;  -- Example constant, typically set to your desired value
+    		CONSTANT k : INTEGER := 3;  -- log2(n), here assumed to be 3
+    		CONSTANT m : INTEGER := 4;  -- 2^(k-1), here assumed to be 4
+			SUBTYPE base_vector IS STD_LOGIC_VECTOR(n-1 DOWNTO 0);  -- Subtype based on 'n'
+			SUBTYPE Logic_mat IS ARRAY (n-1 DOWNTO 0) of base_vector;  -- Matrix of all the optional outputs of Logic
+		)
+	PORT (
+		Y: in base_vector;
+		X: in base_vector;
+		ALUFN: in STD_LOGIC_VECTOR (k downto 0);
+
+		Logic_out: out base_vector;
+	)
+	end Logic;
 	
 	
 	
