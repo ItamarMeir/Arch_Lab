@@ -63,7 +63,22 @@ ARCHITECTURE struct OF top IS
 BEGIN
 	
 	--------- Initializeing components inputs -------------
+	with ALUFN_i (m downto k) select  --- ALUFN[4:3] 
 	
+	Y_AddSub_i <= Y_i when "01",	--- Adder/Subtructor selected
+				(others => '0') when "others";
+	X_AddSub_i <= X_i when "01",
+				(others => '0') when "others";
+
+	Y_Logic_i <= Y_i when "11",		--- Logic selected
+				(others => '0') when "others";
+	X_Logic_i <= X_i when "11",
+				(others => '0') when "others";
+
+	Y_Shifter_i <= Y_i when "10",	--- Shifter selected
+				(others => '0') when "others";
+	X_Shifter_i <= X_i when "10",
+				(others => '0') when "others";
 
 
 
@@ -108,17 +123,36 @@ BEGIN
 			Vflag_o <= Vflag_middle_temp when "01", 	--- When Adder/Subtructor comp. selected
 						'0' when "others";			-- else reset V bit
 
+-------------------------- Port Map ----------------------------
+	
+Logic1: Logic generic map (
+    n => n, k => k, m => m
+) port map (
+    Y_Logic_i => Y_Logic_i,
+    X_Logic_i => X_Logic_i,
+    ALUFN => ALUFN_i(k-1 downto 0),
+    Logic_o => Logic_o
+);
 
+AddSub1: AddSub generic map (
+    n => n, k => k, m => m
+) port map (
+    Y_AddSub_i => Y_AddSub_i,
+    X_AddSub_i => X_AddSub_i,
+    ALUFN => ALUFN_i(k-1 downto 0),
+    AddSub_o => AddSub_o,
+    AddSub_cout => AddSub_cout
+);
 
-	
-	
-	
-	,,,
-	
-	
-	
-	
-	
+Shifter1: Shifter generic map (
+    n => n, k => k, m => m
+) port map (
+    Y_Shifter_i => Y_Shifter_i,
+    X_Shifter_i => X_Shifter_i,
+    ALUFN => ALUFN_i(k-1 downto 0),
+    Shifter_o => Shifter_o,
+    Shifter_cout => Shifter_cout
+);
 	
 			 
 END struct;
