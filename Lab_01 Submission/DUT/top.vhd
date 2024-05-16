@@ -25,11 +25,11 @@ ARCHITECTURE struct OF top IS
 ------------- Signals decleration --------------
 	SIGNAL 	Y_AddSub_i, X_AddSub_i, AddSub_o,
 			Y_Logic_i, X_Logic_i, Logic_o,
-	 		Y_Shifter_i, X_Shifter_i, Shifter_o : STD_LOGIC_VECTOR(n-1 DOWNTO 0)); ---- All vector lines in width n
+	 		Y_Shifter_i, X_Shifter_i, Shifter_o : STD_LOGIC_VECTOR(n-1 DOWNTO 0); ---- All vector lines in width n
 	SIGNAL AddSub_cout, Shifter_cout : std_logic;		---- Single bit lines
 	SIGNAL Vflag_Add_temp, Vflag_Sub_temp, Vflag_middle_temp : std_logic;   ---- Temporary variables used
 ------------- component decleration --------------
-	component Logic
+	component Logic is
 	PORT (
         Y_Logic_i: in  std_logic_vector(n-1 DOWNTO 0);
         X_Logic_i: in  std_logic_vector(n-1 DOWNTO 0);
@@ -38,7 +38,7 @@ ARCHITECTURE struct OF top IS
     );
 	end component;
 
-	component AddSub
+	component AddSub is 
 	PORT (
 		Y_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
         X_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
@@ -50,7 +50,7 @@ ARCHITECTURE struct OF top IS
 	end component;
 
 
-	component Shifter
+	component Shifter is
 	PORT (
         Y_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
         X_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
