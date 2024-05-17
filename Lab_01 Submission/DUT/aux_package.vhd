@@ -35,45 +35,45 @@ package aux_package is
     -- );
 	-- end component;
 	
-----------------------FA-----------------------------------  
-	component FA is
-		PORT (xi, yi, cin: IN std_logic;
-			      s, cout: OUT std_logic);
-	end component;
+-- ----------------------FA-----------------------------------  
+-- 	component FA is
+-- 		PORT (xi, yi, cin: IN std_logic;
+-- 			      s, cout: OUT std_logic);
+-- 	end component;
 
-	------------------AdderSub---------------------------------------
-	component AdderSub is
-	GENERIC (
-			CONSTANT n : INTEGER := 8;  -- Example constant, typically set to your desired value
-    		CONSTANT k : INTEGER := 3;  -- log2(n), here assumed to be 3
-    		CONSTANT m : INTEGER := 4  -- 2^(k-1), here assumed to be 4
-	);
-	PORT (
-		Y_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
-        X_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
-        ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
-        AddSub_o: out std_logic_vector(n-1 DOWNTO 0);
-		AddSub_cout: out std_logic
-       
-    );
-	end component;
-
--- 	------------------Shifter---------------------------------------
--- 	component Shifter is 
+-- 	------------------AdderSub---------------------------------------
+-- 	component AdderSub is
 -- 	GENERIC (
 -- 			CONSTANT n : INTEGER := 8;  -- Example constant, typically set to your desired value
 --     		CONSTANT k : INTEGER := 3;  -- log2(n), here assumed to be 3
---     		CONSTANT m : INTEGER := 4;  -- 2^(k-1), here assumed to be 4
--- 	)
+--     		CONSTANT m : INTEGER := 4  -- 2^(k-1), here assumed to be 4
+-- 	);
 -- 	PORT (
---         Y_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
---         X_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
+-- 		Y_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
+--         X_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
 --         ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
---         Shifter_o: out std_logic_vector(n-1 DOWNTO 0);
--- 		Shifter_cout: out std_logic
+--         AddSub_o: out std_logic_vector(n-1 DOWNTO 0);
+-- 		AddSub_cout: out std_logic
+       
 --     );
 -- 	end component;
--- ---------------------------------------------------------------	
+
+	------------------Shifter---------------------------------------
+	component Shifter is 
+	GENERIC (
+			CONSTANT n : INTEGER := 8;  -- Example constant, typically set to your desired value
+    		CONSTANT k : INTEGER := 3;  -- log2(n), here assumed to be 3
+    		CONSTANT m : INTEGER := 4;  -- 2^(k-1), here assumed to be 4
+	)
+	PORT (
+        Y_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
+        X_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
+        ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
+        Shifter_o: out std_logic_vector(n-1 DOWNTO 0);
+		Shifter_cout: out std_logic
+    );
+	end component;
+---------------------------------------------------------------	
 	
 	
 end aux_package;
