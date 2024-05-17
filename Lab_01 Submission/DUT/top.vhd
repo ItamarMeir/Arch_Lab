@@ -28,37 +28,39 @@ ARCHITECTURE struct OF top IS
 	 		Y_Shifter_i, X_Shifter_i, Shifter_o : STD_LOGIC_VECTOR(n-1 DOWNTO 0); ---- All vector lines in width n
 	SIGNAL AddSub_cout, Shifter_cout : std_logic;		---- Single bit lines
 	SIGNAL Vflag_Add_temp, Vflag_Sub_temp, Vflag_middle_temp : std_logic;   ---- Temporary variables used
-------------- component decleration --------------
-	component Logic is
-	PORT (
-        Y_Logic_i: in  std_logic_vector(n-1 DOWNTO 0);
-        X_Logic_i: in  std_logic_vector(n-1 DOWNTO 0);
-        ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
-        Logic_o: out std_logic_vector(n-1 DOWNTO 0)
-    );
-	end component;
 
-	component AddSub is 
-	PORT (
-		Y_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
-        X_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
-        ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
-        AddSub_o: out std_logic_vector(n-1 DOWNTO 0);
-		AddSub_cout: out std_logic
+-- ------------- component decleration -------------- NOT NEEDED BECAUSE AUX IS INCLUDED
+-- 	component Logic is
+-- 	PORT (
+--         Y_Logic_i: in  std_logic_vector(n-1 DOWNTO 0);
+--         X_Logic_i: in  std_logic_vector(n-1 DOWNTO 0);
+--         ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
+--         Logic_o: out std_logic_vector(n-1 DOWNTO 0)
+--     );
+-- 	end component;
+
+-- 	component AdderSub is 
+-- 	PORT (
+-- 		Y_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
+--         X_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
+--         ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
+
+--         AddSub_o: out std_logic_vector(n-1 DOWNTO 0);
+-- 		AddSub_cout: out std_logic
        
-    );
-	end component;
+--     );
+-- 	end component;
 
 
-	component Shifter is
-	PORT (
-        Y_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
-        X_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
-        ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
-        Shifter_o: out std_logic_vector(n-1 DOWNTO 0);
-		Shifter_cout: out std_logic
-    );
-	end component;
+-- 	component Shifter is
+-- 	PORT (
+--         Y_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
+--         X_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
+--         ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
+--         Shifter_o: out std_logic_vector(n-1 DOWNTO 0);
+-- 		Shifter_cout: out std_logic
+--     );
+-- 	end component;
 
 BEGIN
 	
@@ -134,7 +136,7 @@ Logic1: Logic generic map (
     Logic_o => Logic_o
 );
 
-AddSub1: AddSub generic map (
+AddSub1: AdderSub generic map (
     n => n, k => k, m => m
 ) port map (
     Y_AddSub_i => Y_AddSub_i,
