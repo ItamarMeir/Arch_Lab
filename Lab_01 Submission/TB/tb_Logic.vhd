@@ -30,8 +30,7 @@ architecture rtb of tb is
 	
 
 	signal Y_Logic_i, X_Logic_i, Logic_o: std_logic_vector(n-1 DOWNTO 0);
-    signal ALUFN: std_logic_vector(k-1 DOWNTO 0);   
-   
+    signal ALUFN: std_logic_vector(k-1 DOWNTO 0);      
 begin
 	L0 : Logic generic map (n,k,m) port map(Y_Logic_i, X_Logic_i, ALUFN, Logic_o);
     
@@ -40,21 +39,47 @@ begin
         begin
             ------- NOT testing -------
         
-		  X_Logic_i <= (others => '1');
+		  X_Logic_i <= (others => '0');
 		  Y_Logic_i <= (others => '1');
-          
-		  wait for 50 ns;   ---- Output: "00000000"
-            Y_Logic_i <= (others => '0');
-            wait for 50 ns; ---- Output: "11111111"
-            Y_Logic_i <= ("10101010");
-            wait for 50 ns; ---- Output: "01010101"
+          for j in 0 to 7 loop
+            for k in 0 to 3 loop
+		        wait for 50 ns;   ---- Output: "00000000"
+                 Y_Logic_i <= Y_Logic_i + 3;
+                 X_Logic_i <= X_Logic_i + 2;
+                end loop;
+          end loop;      
+        wait;
+
         end process;
 		 
 		
 		tb_ALUFN : process
         begin
-		  ALUFN <= "000";
-		  wait 150 ns
+
+        ALUFN <= (others => '0');
+        for i in 0 to 7 loop
+        wait for 200 ns;
+         ALUFN <= ALUFN + 1;
+         end loop;
+         wait;
+        -- wait for 150 ns;
+        -- ALUFN <= "001";
+        -- wait for 150 ns;
+        -- ALUFN <= "010";
+        -- wait for 150 ns;
+        --  ALUFN <= "011";
+        -- wait for 150 ns;
+        --  ALUFN <= "100";
+        -- wait for 150 ns;
+        --  ALUFN <= "101";
+        -- wait for 150 ns;
+        --  ALUFN <= "110";
+        -- wait for 150 ns;
+        --  ALUFN <= "111";
+        -- wait for 150 ns;
+
+        
+
         end process;
   
 end architecture rtb;

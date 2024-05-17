@@ -32,15 +32,14 @@ BEGIN
     out_mat(6) <= (others => '0');          --for ALUFN = "110"
     out_mat(7) <= Y_Logic_i xnor X_Logic_i; --for ALUFN = "111"
 
-    with ALUFN select
-    Logic_o <= out_mat(0) when "000",
-                out_mat(1) when "001",
-                out_mat(2) when "010",
-                out_mat(3) when "011",
-                out_mat(4) when "100",
-                out_mat(5) when "101",
-                out_mat(6) when "110",
-                out_mat(7) when others;
+    Logic_o <= out_mat(0) when ALUFN = "000" else
+                out_mat(1) when ALUFN = "001" else
+                out_mat(2) when ALUFN = "010" else
+                out_mat(3) when ALUFN = "011" else
+                out_mat(4) when ALUFN = "100" else
+                out_mat(5) when ALUFN = "101" else
+                out_mat(6) when ALUFN = "110" else
+                out_mat(7);
 
 
 
