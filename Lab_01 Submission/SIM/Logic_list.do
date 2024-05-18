@@ -1,8 +1,8 @@
 onerror {resume}
-add list -width 15 /tb/Y_Logic_i
-add list /tb/X_Logic_i
-add list /tb/Logic_o
-add list /tb/ALUFN
+add list -width 21 /tb_logic/Y_Logic_i
+add list /tb_logic/X_Logic_i
+add list /tb_logic/Logic_o
+add list /tb_logic/ALUFN
 configure list -usestrobe 0
 configure list -strobestart {0 ps} -strobeperiod {0 ps}
 configure list -usesignaltrigger 1

@@ -62,23 +62,8 @@ architecture rtb of tb_Logic is
          ALUFN <= ALUFN + 1;
          end loop;
          wait;
-        -- wait for 150 ns;
-        -- ALUFN <= "001";
-        -- wait for 150 ns;
-        -- ALUFN <= "010";
-        -- wait for 150 ns;
-        --  ALUFN <= "011";
-        -- wait for 150 ns;
-        --  ALUFN <= "100";
-        -- wait for 150 ns;
-        --  ALUFN <= "101";
-        -- wait for 150 ns;
-        --  ALUFN <= "110";
-        -- wait for 150 ns;
-        --  ALUFN <= "111";
-        -- wait for 150 ns;
-
-        
+     
+--- tb of 1600 ns ---
 
         end process;
   

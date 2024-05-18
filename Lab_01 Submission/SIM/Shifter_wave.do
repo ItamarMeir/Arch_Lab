@@ -1,12 +1,12 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate -radix decimal /tb_addersub/x
-add wave -noupdate -radix decimal /tb_addersub/y
-add wave -noupdate -radix decimal /tb_addersub/Sout
-add wave -noupdate /tb_addersub/FN
-add wave -noupdate /tb_addersub/Cout
+add wave -noupdate /tb_shifter/X_Shifter_i
+add wave -noupdate /tb_shifter/Y_Shifter_i
+add wave -noupdate /tb_shifter/Shifter_o
+add wave -noupdate /tb_shifter/ALUFN
+add wave -noupdate /tb_shifter/Shifter_cout
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {200000 ps} 0}
+WaveRestoreCursors {{Cursor 1} {806788 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -22,4 +22,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ps} {4096 ns}
+WaveRestoreZoom {0 ps} {2048 ns}

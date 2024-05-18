@@ -67,13 +67,13 @@ architecture rtl of tb_Shifter is
 		tb_y : process
         begin
 		  Y_Shifter_i <= '1' & (n-2 downto 0 => '0');
-		  for i in 0 to 5 loop
+		  for i in 0 to 20 loop
 		  	wait for 50 ns;
 			Y_Shifter_i <= Y_Shifter_i + 123;	
 		  end loop;
 		  wait;
         end process tb_y;
 
-
+-- tb of 1100 ns --
 
 end architecture rtl;

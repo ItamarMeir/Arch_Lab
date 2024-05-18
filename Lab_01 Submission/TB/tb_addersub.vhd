@@ -65,6 +65,7 @@ architecture rtl of tb_addersub is
 
         end process testbench_FN;
 
+---- tb: 1000 ns ----
 		
 
 		 
