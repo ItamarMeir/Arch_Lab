@@ -4,14 +4,14 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 USE work.aux_package.all;
 ---------------------------------------------------------
-entity tb is
+entity tb_Logic is
 	constant n : integer := 8;
 	constant k : integer := 3;   -- k=log2(n)
 	constant m : integer := 4;   -- m=2^(k-1)
 	
-end tb;
+end tb_Logic;
 ------------------------------------------------------------------------------
-architecture rtb of tb is
+architecture rtb of tb_Logic is
 
    component Logic is
 	GENERIC (

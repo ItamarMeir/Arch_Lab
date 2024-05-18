@@ -32,14 +32,15 @@ BEGIN
     out_mat(6) <= (others => '0');          --for ALUFN = "110"
     out_mat(7) <= Y_Logic_i xnor X_Logic_i; --for ALUFN = "111"
 
-    Logic_o <= out_mat(0) when ALUFN = "000" else
-                out_mat(1) when ALUFN = "001" else
-                out_mat(2) when ALUFN = "010" else
-                out_mat(3) when ALUFN = "011" else
-                out_mat(4) when ALUFN = "100" else
-                out_mat(5) when ALUFN = "101" else
-                out_mat(6) when ALUFN = "110" else
-                out_mat(7);
+    Logic_o <= out_mat(0) when ALUFN = (k-1 downto 3 => '0') & "000" else
+                out_mat(1) when ALUFN = (k-1 downto 3 => '0') & "001" else
+                out_mat(2) when ALUFN = (k-1 downto 3 => '0') & "010" else
+                out_mat(3) when ALUFN = (k-1 downto 3 => '0') & "011" else
+                out_mat(4) when ALUFN = (k-1 downto 3 => '0') & "100" else
+                out_mat(5) when ALUFN = (k-1 downto 3 => '0') & "101" else
+                out_mat(7) when ALUFN = (k-1 downto 3 => '0') & "111" else
+                out_mat(6);  --- else out=0
+                
 
 
 
