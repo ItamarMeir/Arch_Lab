@@ -36,12 +36,12 @@ BEGIN
 	end generate;
 
 	-- generating the other lines: Looping on each bit of X. If the current bit is '1', preform shifting according to the step 'i'. else copy the previous line.
-	GEN_out_carry: for i in 1 to k generate
+	GEN_out: for i in 1 to k generate
 					choice_mat(i) <= choice_mat(i-1)(n-1-(2 ** (i-1)) downto 0) & (2 ** (i-1)-1 downto 0 => '0') when X_Shifter_i(i-1) = '1' else
 									choice_mat(i-1);
 					
-					carry_vector(i) <= choice_mat(i-1)((2 ** (i-1)) - 1) when  X_Shifter_i(i-1) = '1' else
-					carry_vector(i-1);
+					carry_vector(i) <= choice_mat(i-1)(n-(2 ** (i-1))) when  X_Shifter_i(i-1) = '1' else
+									   carry_vector(i-1);
 
 	end generate;
 
@@ -52,7 +52,9 @@ BEGIN
 									'0';	-- else ALUFN undefined
 	end generate;
 
-	Shifter_cout <= carry_vector(k) when ALUFN = ((k-1 downto 1 => '0')) else '0'; 
+	Shifter_cout <= carry_vector(k) when ALUFN = ((k-1 downto 1 => '0') & '0') else
+					carry_vector(k) when ALUFN = ((k-1 downto 1 => '0') & '1') else
+	 				'0'; 
 	
 
 END ARCHITECTURE dataflow;

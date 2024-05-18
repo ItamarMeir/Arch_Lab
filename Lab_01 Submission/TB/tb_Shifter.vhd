@@ -5,9 +5,9 @@ use ieee.std_logic_unsigned.all;
 USE work.aux_package.all;
 ---------------------------------------------------------
 entity tb_Shifter is
-		CONSTANT n : INTEGER := 8;  -- Example constant, typically set to your desired value
-    	CONSTANT k : INTEGER := 3;  -- log2(n), here assumed to be 3
-    	CONSTANT m : INTEGER := 4;  -- 2^(k-1), here assumed to be 4
+		CONSTANT n : INTEGER := 8;  -- Example constant, typically set to your desired value --16
+    	CONSTANT k : INTEGER := 3;  -- log2(n), here assumed to be 3 --4
+    	CONSTANT m : INTEGER := 4;  -- 2^(k-1), here assumed to be 4 -- 8
 end tb_Shifter;
 -------------------------------------------------------------------------------
 architecture rtl of tb_Shifter is
@@ -27,8 +27,8 @@ architecture rtl of tb_Shifter is
    		 );
 	end component;
 
-	SIGNAL X_Shifter_i, Y_Shifter_i, Shifter_o: std_logic_vector(7 DOWNTO 0);
-	SIGNAL ALUFN: std_logic_vector (2 DOWNTO 0);
+	SIGNAL X_Shifter_i, Y_Shifter_i, Shifter_o: std_logic_vector(n-1 DOWNTO 0);
+	SIGNAL ALUFN: std_logic_vector (k-1 DOWNTO 0);
 	SIGNAL Shifter_cout: std_logic;
 
 	begin
@@ -56,7 +56,7 @@ architecture rtl of tb_Shifter is
 		
 		tb_x : process
         begin
-		  X_Shifter_i <= (others => '0');
+		  X_Shifter_i <= (n-1 downto 1 => '0') & '1';
 		  for i in 0 to 10 loop
 		  	wait for 100 ns;
 			X_Shifter_i <= X_Shifter_i + 1;	
@@ -66,10 +66,10 @@ architecture rtl of tb_Shifter is
 
 		tb_y : process
         begin
-		  Y_Shifter_i <= (n-1 downto 1 => '0') & '1';
+		  Y_Shifter_i <= '1' & (n-2 downto 0 => '0');
 		  for i in 0 to 5 loop
 		  	wait for 50 ns;
-			Y_Shifter_i <= Y_Shifter_i + 3;	
+			Y_Shifter_i <= Y_Shifter_i + 123;	
 		  end loop;
 		  wait;
         end process tb_y;
