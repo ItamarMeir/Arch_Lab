@@ -43,7 +43,6 @@ BEGIN
 					carry_vector(i) <= choice_mat(i-1)((2 ** (i-1)) - 1) when  X_Shifter_i(i-1) = '1' else
 					carry_vector(i-1);
 
-					valid_bit <= '1' when (X_Shifter_i(i-1) = '1' AND i= '1') else '0';
 	end generate;
 
 
