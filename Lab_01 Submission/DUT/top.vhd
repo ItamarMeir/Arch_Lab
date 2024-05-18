@@ -6,10 +6,11 @@ USE work.aux_package.all;
 
 -----------------top entity decleration-----------------------
 ENTITY top IS
-  GENERIC (n : INTEGER := 8;
+  GENERIC (
+		   n : INTEGER := 8;
 		   k : integer := 3;   -- k=log2(n)
-		   m : integer := 4	; -- m=2^(k-1)
-		   
+		   m : integer := 4	-- m=2^(k-1)
+  );	   
   PORT 
   (  
 	Y_i,X_i: IN STD_LOGIC_VECTOR (n-1 DOWNTO 0);
@@ -68,19 +69,19 @@ BEGIN
 	with ALUFN_i (m downto k) select  --- ALUFN[4:3] 
 	
 	Y_AddSub_i <= Y_i when "01",	--- Adder/Subtructor selected
-				(others => '0') when "others";
+				(others => '0') when others;
 	X_AddSub_i <= X_i when "01",
-				(others => '0') when "others";
+				(others => '0') when others;
 
 	Y_Logic_i <= Y_i when "11",		--- Logic selected
-				(others => '0') when "others";
+				(others => '0') when others;
 	X_Logic_i <= X_i when "11",
-				(others => '0') when "others";
+				(others => '0') when others;
 
 	Y_Shifter_i <= Y_i when "10",	--- Shifter selected
-				(others => '0') when "others";
+				(others => '0') when others;
 	X_Shifter_i <= X_i when "10",
-				(others => '0') when "others";
+				(others => '0') when others;
 
 
 
@@ -90,23 +91,23 @@ BEGIN
 	ALUout_o <= (others => '0') when "00",	-- Illigal OPCODE
 				AddSub_o when "01",		-- ALUout_o = ADD/SUB output
 				Logic_o when "10",		-- ALUout_o = LOGIC output
-				Shifter_o when "others";	-- ALUout_o = Shifter output
+				Shifter_o when others;	-- ALUout_o = Shifter output
 	
 	--- Nflag_o flag ---
 	with ALUout_o(n-1) select 
 	Nflag_o <= '1' when '1',   -- when MSB is '1' set negative bit
-				'0' when "others"; -- when MSB is '0' reset negative bit
+				'0' when others; -- when MSB is '0' reset negative bit
 
 	--- Zflag_o flag ---
 	with ALUout_o select
 	Zflag_o <= '1' when (others => '0'),  -- when vector is "0" set zero bit
-			'0' when "others";			-- else reset zero bit
+			'0' when others;			-- else reset zero bit
 
 	--- Cflag_o flag ---
 	with ALUFN_i (m downto k) select  --- ALUFN[4:3] 
 	Cflag_o <= AddSub_cout when "01",  -- when Adder/Subtructior was activated take its carry
 				Shifter_cout when "10",	-- when Shifter was activated take its carry
-				'0' when "others";			-- else reset
+				'0' when others;			-- else reset
 
 
 	--- Vflag_o flag ---
@@ -119,11 +120,11 @@ BEGIN
 		with ALUFN_i (k-1 downto 0) select
 				Vflag_middle_temp <= Vflag_Add_temp when "000",  --- When Add selcted
 									Vflag_Sub_temp when "001",	--- When Sub selected
-									'0' when "others";
+									'0' when others;
 
 		with ALUFN_i (m downto k) select  --- ALUFN[4:3] 
 			Vflag_o <= Vflag_middle_temp when "01", 	--- When Adder/Subtructor comp. selected
-						'0' when "others";			-- else reset V bit
+						'0' when others;			-- else reset V bit
 
 -------------------------- Port Map ----------------------------
 	

@@ -3,38 +3,57 @@ USE ieee.std_logic_1164.all;
 use work.aux_package.all;
 
 ENTITY Shifter IS
-	generic ( n : integer :=8;
-			  k : integer :=3);
-	PORT (	x, y: IN std_logic_vector (n-1 DOWNTO 0);
-			FN: IN std_logic_vector (k-1 DOWNTO 0); 
-			res: OUT std_logic_vector (n-1 DOWNTO 0);
-			Cout: OUT std_logic);
+	GENERIC (
+			CONSTANT n : INTEGER := 8;  -- Example constant, typically set to your desired value
+    		CONSTANT k : INTEGER := 3;  -- log2(n), here assumed to be 3
+    		CONSTANT m : INTEGER := 4  -- 2^(k-1), here assumed to be 4
+	);
+	PORT (	
+			Y_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0); -- Y input
+        	X_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0); -- X input
+        	ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);		-- Shifter mode: for "000" shift left. for "001" shift right.
+        	Shifter_o: out std_logic_vector(n-1 DOWNTO 0);	-- Shifter output
+			Shifter_cout: out std_logic						-- Shifter carry output
+		);
 END Shifter;
 --------------------------------------------------------
 ARCHITECTURE dataflow OF Shifter IS
+
 	subtype vector is std_logic_vector (n-1 DOWNTO 0);
 	type matrix is array (k DOWNTO 0) of vector;
-	signal row: matrix;
-	signal sel:integer range 0 to n;
 
+	signal choice_mat: matrix;
+	signal carry_vector: vector;
+	
 BEGIN
-	sel <= x(k-1 DOWNTO 0);
-	row(0) <= y;
-	--mode1: if FN = "000" generate --- shift left
-		   G1: for i in 1 to k generate
-			   row(i) <= row (i-1)(n-2 DOWNTO 0) & '0' when FN = "000" else
-			    		 '0' & row (i-1)(n-1 DOWNTO 1) when FN = "001";
-			   				
-			   Cout <= row (i-1)(n-1) when FN = "000" else
-			   			row (i-1)(0) when FN = "001";
-		   end generate G1;
-	--end generate mode1;
-	
-	with sel select
-		res <= row(0) when "000",
-				row(1) when "001",
-				
 
-	res <= row(0); --- output of the shift
+	-- NOTE - shifting right can be preformed as this: Inverse the vector, shift left, inverse again.
+	carry_vector(0) <= '0';
+	First_line: for i in 0 to n-1 generate -- If SHL applied copy Y to choice_mat(0). If SHR copy reversed(Y) to choice_mat(0).
+					choice_mat(0)(i) <= Y_Shifter_i(i) when ALUFN = ((k-1 downto 1 => '0') & '0') else   -- Shift left applied
+										Y_Shifter_i(n-1-i) when ALUFN = ((k-1 downto 1 => '0') & '1') else -- Shift right applied (reverse)
+										'0';	-- else ALUFN undefined
+	end generate;
+
+	-- generating the other lines: Looping on each bit of X. If the current bit is '1', preform shifting according to the step 'i'. else copy the previous line.
+	GEN_out_carry: for i in 1 to k generate
+					choice_mat(i) <= choice_mat(i-1)(n-1-(2 ** (i-1)) downto 0) & (2 ** (i-1)-1 downto 0 => '0') when X_Shifter_i(i-1) = '1' else
+									choice_mat(i-1);
+					
+					carry_vector(i) <= choice_mat(i-1)((2 ** (i-1)) - 1) when  X_Shifter_i(i-1) = '1' else
+					carry_vector(i-1);
+
+					valid_bit <= '1' when (X_Shifter_i(i-1) = '1' AND i= '1') else '0';
+	end generate;
+
+
+	Reverse: for i in 0 to n-1 generate
+					Shifter_o(i) <= choice_mat(k)(i) when ALUFN = ((k-1 downto 1 => '0') & '0') else   -- Shift left applied
+									choice_mat(k)(n-1-i) when ALUFN = ((k-1 downto 1 => '0') & '1') else -- Shift right applied (reverse)
+									'0';	-- else ALUFN undefined
+	end generate;
+
+	Shifter_cout <= carry_vector(k) when ALUFN = ((k-1 downto 1 => '0')) else '0'; 
 	
-END dataflow;
+
+END ARCHITECTURE dataflow;

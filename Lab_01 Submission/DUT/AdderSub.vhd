@@ -33,7 +33,7 @@ BEGIN
 	U1: for i in 0 to n-1 generate -- generating X_0 and Y_0 according to sub_cont.
 		X_0(i) <= (X_AddSub_i(i) xor sub_cont) when ((ALUFN = (k-1 downto 2 => '0') & "00") OR (ALUFN = (k-1 downto 2 => '0') & "01") OR 
 													(ALUFN = (k-1 downto 2 => '0') & "10"))
-											else '0';
+												else '0';
 		Y_0(i) <= Y_AddSub_i(i) when ((ALUFN = (k-1 downto 2 => '0') & "00") OR (ALUFN = (k-1 downto 2 => '0') & "01")) else -- when adding/subtructing Y=Yin when neg(X) Y=0
 			      '0';
 		end generate;		  
