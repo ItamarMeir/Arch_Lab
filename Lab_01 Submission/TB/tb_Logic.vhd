@@ -31,7 +31,7 @@ architecture rtb of tb_Logic is
 
 	signal Y_Logic_i, X_Logic_i, Logic_o: std_logic_vector(n-1 DOWNTO 0);
     signal ALUFN: std_logic_vector(k-1 DOWNTO 0);      
-begin
+    begin
 	L0 : Logic generic map (n,k,m) port map(Y_Logic_i, X_Logic_i, ALUFN, Logic_o);
     
 	--------- start of stimulus section ---------------------------------------		
