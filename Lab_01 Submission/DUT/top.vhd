@@ -14,7 +14,7 @@ ENTITY top IS
   PORT 
   (  
 	Y_i,X_i: IN STD_LOGIC_VECTOR (n-1 DOWNTO 0);
-		  ALUFN_i : IN STD_LOGIC_VECTOR (4 DOWNTO 0);
+		  ALUFN_i : IN STD_LOGIC_VECTOR (m DOWNTO 0);
 		  
 		  ALUout_o: OUT STD_LOGIC_VECTOR(n-1 downto 0);
 		  Nflag_o,Cflag_o,Zflag_o,Vflag_o: OUT STD_LOGIC
@@ -24,107 +24,82 @@ END top;
 ------------- ARCHITECTURE decleration --------------
 ARCHITECTURE struct OF top IS 
 ------------- Signals decleration --------------
-	SIGNAL 	Y_AddSub_i, X_AddSub_i, AddSub_o,
-			Y_Logic_i, X_Logic_i, Logic_o,
-	 		Y_Shifter_i, X_Shifter_i, Shifter_o : STD_LOGIC_VECTOR(n-1 DOWNTO 0); ---- All vector lines in width n
+	SIGNAL 	Y_AddSub_i, X_AddSub_i, AddSub_o : STD_LOGIC_VECTOR(n-1 DOWNTO 0);
+	SIGNAL	Y_Logic_i, X_Logic_i, Logic_o : STD_LOGIC_VECTOR(n-1 DOWNTO 0);
+	SIGNAL	Y_Shifter_i, X_Shifter_i, Shifter_o : STD_LOGIC_VECTOR(n-1 DOWNTO 0); ---- All vector lines in width n
 	SIGNAL AddSub_cout, Shifter_cout : std_logic;		---- Single bit lines
 	SIGNAL Vflag_Add_temp, Vflag_Sub_temp, Vflag_middle_temp : std_logic;   ---- Temporary variables used
 
--- ------------- component decleration -------------- NOT NEEDED BECAUSE AUX IS INCLUDED
--- 	component Logic is
--- 	PORT (
---         Y_Logic_i: in  std_logic_vector(n-1 DOWNTO 0);
---         X_Logic_i: in  std_logic_vector(n-1 DOWNTO 0);
---         ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
---         Logic_o: out std_logic_vector(n-1 DOWNTO 0)
---     );
--- 	end component;
-
--- 	component AdderSub is 
--- 	PORT (
--- 		Y_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
---         X_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
---         ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
-
---         AddSub_o: out std_logic_vector(n-1 DOWNTO 0);
--- 		AddSub_cout: out std_logic
-       
---     );
--- 	end component;
-
-
--- 	component Shifter is
--- 	PORT (
---         Y_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
---         X_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
---         ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
---         Shifter_o: out std_logic_vector(n-1 DOWNTO 0);
--- 		Shifter_cout: out std_logic
---     );
--- 	end component;
 
 BEGIN
 	
 	--------- Initializeing components inputs -------------
-	with ALUFN_i (m downto k) select  --- ALUFN[4:3] 
+	 --- ALUFN[4:3] 
 	
-	Y_AddSub_i <= Y_i when "01",	--- Adder/Subtructor selected
-				(others => '0') when others;
-	X_AddSub_i <= X_i when "01",
-				(others => '0') when others;
+	Y_AddSub_i <= Y_i when ALUFN_i (m downto k) = (m downto 2 => '0') & "01" else		--- Adder/Subtructor selected
+				(others => '0');
+	X_AddSub_i <= X_i when ALUFN_i (m downto k) = (m downto 2 => '0') & "01" else
+				(others => '0');
 
-	Y_Logic_i <= Y_i when "11",		--- Logic selected
-				(others => '0') when others;
-	X_Logic_i <= X_i when "11",
-				(others => '0') when others;
+	Y_Logic_i <= Y_i when ALUFN_i (m downto k) = (m downto 2 => '0') & "11" else		--- Logic selected
+				(others => '0');
+	X_Logic_i <= X_i when ALUFN_i (m downto k) = (m downto 2 => '0') & "11" else
+				(others => '0');
 
-	Y_Shifter_i <= Y_i when "10",	--- Shifter selected
-				(others => '0') when others;
-	X_Shifter_i <= X_i when "10",
-				(others => '0') when others;
+	Y_Shifter_i <= Y_i when ALUFN_i (m downto k) = (m downto 2 => '0') & "10" else	--- Shifter selected
+				(others => '0');
+	X_Shifter_i <= X_i when ALUFN_i (m downto k) = (m downto 2 => '0') & "10" else
+				(others => '0');
 
 
 
 	------------ ALU output -----------
 
-	with ALUFN_i (m downto k) select  --- ALUFN[4:3] 
-	ALUout_o <= (others => '0') when "00",	-- Illigal OPCODE
-				AddSub_o when "01",		-- ALUout_o = ADD/SUB output
-				Logic_o when "10",		-- ALUout_o = LOGIC output
-				Shifter_o when others;	-- ALUout_o = Shifter output
+	  --- ALUFN[4:3] 
+	ALUout_o <= 	
+				AddSub_o when ALUFN_i(m downto k) = (m downto 2 => '0') & "01" else		-- ALUout_o = ADD/SUB output
+				Shifter_o when ALUFN_i(m downto k) = (m downto 2 => '0') & "10" else		-- ALUout_o = Shifter output
+				Logic_o when ALUFN_i(m downto k) = (m downto 2 => '0') & "11" else		-- ALUout_o = Logic output
+				(others => '0'); 								-- Illigal OPCODE											
 	
 	--- Nflag_o flag ---
-	with ALUout_o(n-1) select 
-	Nflag_o <= '1' when '1',   -- when MSB is '1' set negative bit
-				'0' when others; -- when MSB is '0' reset negative bit
-
+	
+	Nflag_o <= '0' when ALUFN_i(m downto k) = (m downto 0 => '0') else					-- Illigal OPCODE
+				AddSub_o(n-1) when ALUFN_i(m downto k) = (m downto 2 => '0') & "01" else		-- ALUout_o = ADD/SUB output
+				Shifter_o(n-1) when ALUFN_i(m downto k) = (m downto 2 => '0') & "10" else		-- ALUout_o = Shifter output
+				Logic_o(n-1);																	-- ALUout_o = LOGIC output
+	
 	--- Zflag_o flag ---
-	with ALUout_o select
-	Zflag_o <= '1' when (others => '0'),  -- when vector is "0" set zero bit
-			'0' when others;			-- else reset zero bit
+
+Zflag_o <= '1' when ((ALUFN_i(m downto k) = (m downto 2 => '0') & "01" AND AddSub_o = (n-1 downto 0 => '0')) OR -- AddSub_o=0 and chosen 
+             		 (ALUFN_i(m downto k) = (m downto 2 => '0') & "10" AND Shifter_o = (n-1 downto 0 => '0')) OR -- Shifter_o=0 and chosen 
+              		(ALUFN_i(m downto k) = (m downto 2 => '0') & "11" AND Logic_o = (n-1 downto 0 => '0'))) OR -- Logic_o=0 and chosen 
+					ALUFN_i(m downto k) = (m downto 2 => '0') & "00"											-- Illigal OPCODE 
+					else '0';
+    			
+														
 
 	--- Cflag_o flag ---
-	with ALUFN_i (m downto k) select  --- ALUFN[4:3] 
-	Cflag_o <= AddSub_cout when "01",  -- when Adder/Subtructior was activated take its carry
-				Shifter_cout when "10",	-- when Shifter was activated take its carry
-				'0' when others;			-- else reset
+  --- ALUFN[4:3] 
+	Cflag_o <= AddSub_cout when ALUFN_i(m downto k) = (m downto 2 => '0') & "01" else -- when Adder/Subtructior was activated take its carry
+				Shifter_cout when ALUFN_i(m downto k) = (m downto 2 => '0') & "10" else	-- when Shifter was activated take its carry
+				'0';			-- else reset
 
 
 	--- Vflag_o flag ---
-		Vflag_Add_temp <= ((not (X_i(n-1))) and (not (Y_i(n-1))) and AddSub_o(n-1)) or
-							((X_i(n-1)) and (Y_i(n-1)) and (not (AddSub_o(n-1))));  		--- When Addition applied Overflow is this boolean expression
+		Vflag_Add_temp <= ((not (X_AddSub_i(n-1))) and (not (Y_AddSub_i(n-1))) and AddSub_o(n-1)) or
+							((X_AddSub_i(n-1)) and (Y_AddSub_i(n-1)) and (not (AddSub_o(n-1))));  		--- When Addition applied Overflow is this boolean expression
 		
-		Vflag_Sub_temp <= ((not (X_i(n-1))) and (Y_i(n-1)) and AddSub_o(n-1)) or
-							((X_i(n-1)) and (not(Y_i(n-1))) and (not (AddSub_o(n-1))));  		--- When Subtruction applied Overflow is this boolean expression
+		Vflag_Sub_temp <= ((not (Y_AddSub_i(n-1))) and (X_AddSub_i(n-1)) and AddSub_o(n-1)) or
+							((Y_AddSub_i(n-1)) and (not(X_AddSub_i(n-1))) and (not (AddSub_o(n-1))));  		--- When Subtruction applied Overflow is this boolean expression
 
-		with ALUFN_i (k-1 downto 0) select
-				Vflag_middle_temp <= Vflag_Add_temp when "000",  --- When Add selcted
-									Vflag_Sub_temp when "001",	--- When Sub selected
-									'0' when others;
+				Vflag_middle_temp <= Vflag_Add_temp when ALUFN_i (k-1 downto 0) = "000" else  --- When Add selcted
+									Vflag_Sub_temp when ALUFN_i (k-1 downto 0) = "001" else	--- When Sub selected
+									'0';
 
-		with ALUFN_i (m downto k) select  --- ALUFN[4:3] 
-			Vflag_o <= Vflag_middle_temp when "01", 	--- When Adder/Subtructor comp. selected
-						'0' when others;			-- else reset V bit
+		--- ALUFN[4:3] 
+			Vflag_o <= Vflag_middle_temp when ALUFN_i(m downto k) = (m downto 2 => '0') & "01" else	--- When Adder/Subtructor comp. selected
+						'0';			-- else reset V bit
 
 -------------------------- Port Map ----------------------------
 	
