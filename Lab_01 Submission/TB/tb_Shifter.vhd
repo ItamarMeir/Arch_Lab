@@ -21,7 +21,7 @@ architecture rtl of tb_Shifter is
 		PORT (
         	Y_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
         	X_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
-        	ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
+        	ALUFN: in STD_LOGIC_VECTOR (2 downto 0);
        	 	Shifter_o: out std_logic_vector(n-1 DOWNTO 0);
 			Shifter_cout: out std_logic
    		 );

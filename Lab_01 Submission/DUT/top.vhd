@@ -14,7 +14,7 @@ ENTITY top IS
   PORT 
   (  
 	Y_i,X_i: IN STD_LOGIC_VECTOR (n-1 DOWNTO 0);
-		  ALUFN_i : IN STD_LOGIC_VECTOR (m DOWNTO 0);
+		  ALUFN_i : IN STD_LOGIC_VECTOR (4 DOWNTO 0);
 		  
 		  ALUout_o: OUT STD_LOGIC_VECTOR(n-1 downto 0);
 		  Nflag_o,Cflag_o,Zflag_o,Vflag_o: OUT STD_LOGIC
@@ -36,19 +36,19 @@ BEGIN
 	--------- Initializeing components inputs -------------
 	 --- ALUFN[4:3] 
 	
-	Y_AddSub_i <= Y_i when ALUFN_i (m downto k) = (m downto 2 => '0') & "01" else		--- Adder/Subtructor selected
+	Y_AddSub_i <= Y_i when ALUFN_i (4 downto 3) = "01" else		--- Adder/Subtructor selected
 				(others => '0');
-	X_AddSub_i <= X_i when ALUFN_i (m downto k) = (m downto 2 => '0') & "01" else
-				(others => '0');
-
-	Y_Logic_i <= Y_i when ALUFN_i (m downto k) = (m downto 2 => '0') & "11" else		--- Logic selected
-				(others => '0');
-	X_Logic_i <= X_i when ALUFN_i (m downto k) = (m downto 2 => '0') & "11" else
+	X_AddSub_i <= X_i when ALUFN_i (4 downto 3) = "01" else
 				(others => '0');
 
-	Y_Shifter_i <= Y_i when ALUFN_i (m downto k) = (m downto 2 => '0') & "10" else	--- Shifter selected
+	Y_Logic_i <= Y_i when ALUFN_i (4 downto 3) = "11" else		--- Logic selected
 				(others => '0');
-	X_Shifter_i <= X_i when ALUFN_i (m downto k) = (m downto 2 => '0') & "10" else
+	X_Logic_i <= X_i when ALUFN_i (4 downto 3) = "11" else
+				(others => '0');
+
+	Y_Shifter_i <= Y_i when ALUFN_i (4 downto 3) =  "10" else	--- Shifter selected
+				(others => '0');
+	X_Shifter_i <= X_i when ALUFN_i (4 downto 3) =  "10" else
 				(others => '0');
 
 
@@ -57,32 +57,32 @@ BEGIN
 
 	  --- ALUFN[4:3] 
 	ALUout_o <= 	
-				AddSub_o when ALUFN_i(m downto k) = (m downto 2 => '0') & "01" else		-- ALUout_o = ADD/SUB output
-				Shifter_o when ALUFN_i(m downto k) = (m downto 2 => '0') & "10" else		-- ALUout_o = Shifter output
-				Logic_o when ALUFN_i(m downto k) = (m downto 2 => '0') & "11" else		-- ALUout_o = Logic output
+				AddSub_o when ALUFN_i (4 downto 3) = "01" else		-- ALUout_o = ADD/SUB output
+				Shifter_o when ALUFN_i(4 downto 3) =  "10" else		-- ALUout_o = Shifter output
+				Logic_o when ALUFN_i (4 downto 3) = "11" else		-- ALUout_o = Logic output
 				(others => '0'); 								-- Illigal OPCODE											
 	
 	--- Nflag_o flag ---
 	
-	Nflag_o <= '0' when ALUFN_i(m downto k) = (m downto 0 => '0') else					-- Illigal OPCODE
-				AddSub_o(n-1) when ALUFN_i(m downto k) = (m downto 2 => '0') & "01" else		-- ALUout_o = ADD/SUB output
-				Shifter_o(n-1) when ALUFN_i(m downto k) = (m downto 2 => '0') & "10" else		-- ALUout_o = Shifter output
+	Nflag_o <= '0' when ALUFN_i(4 downto 3) = "00" else					-- Illigal OPCODE
+				AddSub_o(n-1) when ALUFN_i(4 downto 3) =  "01" else		-- ALUout_o = ADD/SUB output
+				Shifter_o(n-1) when ALUFN_i(4 downto 3) =  "10" else		-- ALUout_o = Shifter output
 				Logic_o(n-1);																	-- ALUout_o = LOGIC output
 	
 	--- Zflag_o flag ---
 
-Zflag_o <= '1' when ((ALUFN_i(m downto k) = (m downto 2 => '0') & "01" AND AddSub_o = (n-1 downto 0 => '0')) OR -- AddSub_o=0 and chosen 
-             		 (ALUFN_i(m downto k) = (m downto 2 => '0') & "10" AND Shifter_o = (n-1 downto 0 => '0')) OR -- Shifter_o=0 and chosen 
-              		(ALUFN_i(m downto k) = (m downto 2 => '0') & "11" AND Logic_o = (n-1 downto 0 => '0'))) OR -- Logic_o=0 and chosen 
-					ALUFN_i(m downto k) = (m downto 2 => '0') & "00"											-- Illigal OPCODE 
+Zflag_o <= '1' when ((ALUFN_i(4 downto 3) =  "01" AND AddSub_o = (n-1 downto 0 => '0')) OR -- AddSub_o=0 and chosen 
+             		 (ALUFN_i(4 downto 3) =   "10" AND Shifter_o = (n-1 downto 0 => '0')) OR -- Shifter_o=0 and chosen 
+              		(ALUFN_i(4 downto 3) =  "11" AND Logic_o = (n-1 downto 0 => '0'))) OR -- Logic_o=0 and chosen 
+					ALUFN_i(4 downto 3) = "00"											-- Illigal OPCODE 
 					else '0';
     			
 														
 
 	--- Cflag_o flag ---
   --- ALUFN[4:3] 
-	Cflag_o <= AddSub_cout when ALUFN_i(m downto k) = (m downto 2 => '0') & "01" else -- when Adder/Subtructior was activated take its carry
-				Shifter_cout when ALUFN_i(m downto k) = (m downto 2 => '0') & "10" else	-- when Shifter was activated take its carry
+	Cflag_o <= AddSub_cout when ALUFN_i(4 downto 3) = "01"  else -- when Adder/Subtructior was activated take its carry
+				Shifter_cout when ALUFN_i(4 downto 3) =  "10" else	-- when Shifter was activated take its carry
 				'0';			-- else reset
 
 
@@ -93,12 +93,12 @@ Zflag_o <= '1' when ((ALUFN_i(m downto k) = (m downto 2 => '0') & "01" AND AddSu
 		Vflag_Sub_temp <= ((not (Y_AddSub_i(n-1))) and (X_AddSub_i(n-1)) and AddSub_o(n-1)) or
 							((Y_AddSub_i(n-1)) and (not(X_AddSub_i(n-1))) and (not (AddSub_o(n-1))));  		--- When Subtruction applied Overflow is this boolean expression
 
-				Vflag_middle_temp <= Vflag_Add_temp when ALUFN_i (k-1 downto 0) = "000" else  --- When Add selcted
-									Vflag_Sub_temp when ALUFN_i (k-1 downto 0) = "001" else	--- When Sub selected
+				Vflag_middle_temp <= Vflag_Add_temp when ALUFN_i (2 downto 0) = "000" else  --- When Add selcted
+									Vflag_Sub_temp when ALUFN_i (2 downto 0) = "001" else	--- When Sub selected
 									'0';
 
 		--- ALUFN[4:3] 
-			Vflag_o <= Vflag_middle_temp when ALUFN_i(m downto k) = (m downto 2 => '0') & "01" else	--- When Adder/Subtructor comp. selected
+			Vflag_o <= Vflag_middle_temp when ALUFN_i(4 downto 3) = "01" else	--- When Adder/Subtructor comp. selected
 						'0';			-- else reset V bit
 
 -------------------------- Port Map ----------------------------
@@ -108,7 +108,7 @@ Logic1: Logic generic map (
 ) port map (
     Y_Logic_i => Y_Logic_i,
     X_Logic_i => X_Logic_i,
-    ALUFN => ALUFN_i(k-1 downto 0),
+    ALUFN => ALUFN_i(2 downto 0),
     Logic_o => Logic_o
 );
 
@@ -117,7 +117,7 @@ AddSub1: AdderSub generic map (
 ) port map (
     Y_AddSub_i => Y_AddSub_i,
     X_AddSub_i => X_AddSub_i,
-    ALUFN => ALUFN_i(k-1 downto 0),
+    ALUFN => ALUFN_i(2 downto 0),
     AddSub_o => AddSub_o,
     AddSub_cout => AddSub_cout
 );
@@ -127,7 +127,7 @@ Shifter1: Shifter generic map (
 ) port map (
     Y_Shifter_i => Y_Shifter_i,
     X_Shifter_i => X_Shifter_i,
-    ALUFN => ALUFN_i(k-1 downto 0),
+    ALUFN => ALUFN_i(2 downto 0),
     Shifter_o => Shifter_o,
     Shifter_cout => Shifter_cout
 );

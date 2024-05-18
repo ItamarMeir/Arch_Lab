@@ -12,7 +12,7 @@ ENTITY AdderSub IS
 	PORT (
 		Y_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
         X_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
-        ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
+        ALUFN: in STD_LOGIC_VECTOR (2 downto 0);
 
         AddSub_o: out std_logic_vector(n-1 DOWNTO 0);
 		AddSub_cout: out std_logic
@@ -27,14 +27,14 @@ ARCHITECTURE dataflow OF AdderSub IS
 	SIGNAL reg : std_logic_vector(n-1 DOWNTO 0);
 
 BEGIN
-	sub_cont <=  '1' when ((ALUFN = (k-1 downto 2 => '0') & "01") or (ALUFN = (k-1 downto 2 => '0') & "10")) else  -- when we want to subtruct Y-X or neg(X), sub_cont='1'
+	sub_cont <=  '1' when ((ALUFN = "001") or (ALUFN = "010")) else  -- when we want to subtruct Y-X or neg(X), sub_cont='1'
 				 '0' ;
 				 
 	U1: for i in 0 to n-1 generate -- generating X_0 and Y_0 according to sub_cont.
-		X_0(i) <= (X_AddSub_i(i) xor sub_cont) when ((ALUFN = (k-1 downto 2 => '0') & "00") OR (ALUFN = (k-1 downto 2 => '0') & "01") OR 
-													(ALUFN = (k-1 downto 2 => '0') & "10"))
+		X_0(i) <= (X_AddSub_i(i) xor sub_cont) when ((ALUFN = "000") OR (ALUFN = "001") OR 
+													(ALUFN = "010"))
 												else '0';
-		Y_0(i) <= Y_AddSub_i(i) when ((ALUFN = (k-1 downto 2 => '0') & "00") OR (ALUFN = (k-1 downto 2 => '0') & "01")) else -- when adding/subtructing Y=Yin when neg(X) Y=0
+		Y_0(i) <= Y_AddSub_i(i) when ((ALUFN = "000") OR (ALUFN = "001")) else -- when adding/subtructing Y=Yin when neg(X) Y=0
 			      '0';
 		end generate;		  
 	

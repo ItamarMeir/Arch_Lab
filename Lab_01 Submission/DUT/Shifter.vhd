@@ -11,7 +11,7 @@ ENTITY Shifter IS
 	PORT (	
 			Y_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0); -- Y input
         	X_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0); -- X input
-        	ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);		-- Shifter mode: for "000" shift left. for "001" shift right.
+        	ALUFN: in STD_LOGIC_VECTOR (2 downto 0);		-- Shifter mode: for "000" shift left. for "001" shift right.
         	Shifter_o: out std_logic_vector(n-1 DOWNTO 0);	-- Shifter output
 			Shifter_cout: out std_logic						-- Shifter carry output
 		);
@@ -30,8 +30,8 @@ BEGIN
 	-- NOTE - shifting right can be preformed as this: Inverse the vector, shift left, inverse again.
 	carry_vector(0) <= '0';
 	First_line: for i in 0 to n-1 generate -- If SHL applied copy Y to choice_mat(0). If SHR copy reversed(Y) to choice_mat(0).
-					choice_mat(0)(i) <= Y_Shifter_i(i) when ALUFN = ((k-1 downto 1 => '0') & '0') else   -- Shift left applied
-										Y_Shifter_i(n-1-i) when ALUFN = ((k-1 downto 1 => '0') & '1') else -- Shift right applied (reverse)
+					choice_mat(0)(i) <= Y_Shifter_i(i) when ALUFN = "000" else   -- Shift left applied
+										Y_Shifter_i(n-1-i) when ALUFN = "001" else -- Shift right applied (reverse)
 										'0';	-- else ALUFN undefined
 	end generate;
 
@@ -47,13 +47,13 @@ BEGIN
 
 
 	Reverse: for i in 0 to n-1 generate
-					Shifter_o(i) <= choice_mat(k)(i) when ALUFN = ((k-1 downto 1 => '0') & '0') else   -- Shift left applied
-									choice_mat(k)(n-1-i) when ALUFN = ((k-1 downto 1 => '0') & '1') else -- Shift right applied (reverse)
+					Shifter_o(i) <= choice_mat(k)(i) when ALUFN = "000" else   -- Shift left applied
+									choice_mat(k)(n-1-i) when ALUFN = "001" else -- Shift right applied (reverse)
 									'0';	-- else ALUFN undefined
 	end generate;
 
-	Shifter_cout <= carry_vector(k) when ALUFN = ((k-1 downto 1 => '0') & '0') else
-					carry_vector(k) when ALUFN = ((k-1 downto 1 => '0') & '1') else
+	Shifter_cout <= carry_vector(k) when ALUFN = "000" else
+					carry_vector(k) when ALUFN = "001" else
 	 				'0'; 
 	
 

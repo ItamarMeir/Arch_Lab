@@ -29,7 +29,7 @@ package aux_package is
     PORT (
         Y_Logic_i: in  std_logic_vector(n-1 DOWNTO 0);
         X_Logic_i: in  std_logic_vector(n-1 DOWNTO 0);
-        ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);            --- ALUFN[2:0]
+        ALUFN: in STD_LOGIC_VECTOR (2 downto 0);            --- ALUFN[2:0]
         Logic_o: out std_logic_vector(n-1 DOWNTO 0)
     );
 	end component;
@@ -50,7 +50,7 @@ package aux_package is
 	PORT (
 		Y_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
         X_AddSub_i: in  std_logic_vector(n-1 DOWNTO 0);
-        ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
+        ALUFN: in STD_LOGIC_VECTOR (2 downto 0);
         AddSub_o: out std_logic_vector(n-1 DOWNTO 0);
 		AddSub_cout: out std_logic
        
@@ -67,7 +67,7 @@ package aux_package is
 	PORT (
         Y_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
         X_Shifter_i: in  std_logic_vector(n-1 DOWNTO 0);
-        ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);
+        ALUFN: in STD_LOGIC_VECTOR (2 downto 0);
         Shifter_o: out std_logic_vector(n-1 DOWNTO 0);
 		Shifter_cout: out std_logic
     );
