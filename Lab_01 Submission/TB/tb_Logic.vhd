@@ -22,7 +22,7 @@ architecture rtb of tb_Logic is
     PORT (
         Y_Logic_i: in  std_logic_vector(n-1 DOWNTO 0);
         X_Logic_i: in  std_logic_vector(n-1 DOWNTO 0);
-        ALUFN: in STD_LOGIC_VECTOR (k-1 downto 0);            --- ALUFN[2:0]
+        ALUFN: in STD_LOGIC_VECTOR (2 downto 0);            --- ALUFN[2:0]
         Logic_o: out std_logic_vector(n-1 DOWNTO 0)
     );
 	end component;
@@ -30,7 +30,7 @@ architecture rtb of tb_Logic is
 	
 
 	signal Y_Logic_i, X_Logic_i, Logic_o: std_logic_vector(n-1 DOWNTO 0);
-    signal ALUFN: std_logic_vector(k-1 DOWNTO 0);      
+    signal ALUFN: std_logic_vector(2 DOWNTO 0);      
     begin
 	L0 : Logic generic map (n,k,m) port map(Y_Logic_i, X_Logic_i, ALUFN, Logic_o);
     
