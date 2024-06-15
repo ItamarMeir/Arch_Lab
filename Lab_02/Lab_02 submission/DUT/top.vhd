@@ -39,7 +39,7 @@ proce_1: process (clk,rst)		 -------  Two FF to create X[j-1], X[j-2]
 		end process;
 		
 ------------- process 2 --------------
-		with DetectionCode select   -------     to recognize which detection rule to chek and convert him to n digit binary vector 
+		with DetectionCode select   -------     to recognize which detection rule to check and convert it to n digit binary vector 
 		detec_code <=         (others => '0') when 0,
 					  (0=> '1', others => '0') when 1,
 					  (1=> '1' ,others => '0') when 2,
