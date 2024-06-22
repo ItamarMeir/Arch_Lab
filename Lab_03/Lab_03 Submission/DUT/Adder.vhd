@@ -1,5 +1,6 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
+USE work.aux_package.all;
 --------------------------------------------------------
 ENTITY Adder IS
   GENERIC (Dwidth: integer:=16);
@@ -10,17 +11,28 @@ ENTITY Adder IS
 END Adder;
 --------------------------------------------------------
 ARCHITECTURE rtl OF Adder IS
+
+  SIGNAL A_temp, B_temp, S_out: STD_LOGIC_VECTOR (Dwidth-1 DOWNTO 0);
+  SIGNAL reg: STD_LOGIC_VECTOR (Dwidth-1 DOWNTO 0);
 BEGIN
-  PROCESS (a, b, cin)
-    VARIABLE carry : STD_LOGIC_VECTOR (Dwidth DOWNTO 0);
-  BEGIN
-    carry(0) := cin;
-    FOR i IN 0 TO Dwidth-1 LOOP
-       s(i) <= a(i) XOR b(i) XOR carry(i);
-       carry(i+1) := (a(i) AND b(i)) OR (a(i) AND
-       carry(i)) OR (b(i) AND carry(i));
-    END LOOP;
-    cout <= carry(Dwidth);
-  END PROCESS;
+  
+  -- Assign the input signals
+  A_temp <= a;
+  B_temp <= b;
+
+  	
+	-- First FA operation to ALU
+	first: FA port map(A_temp(0), B_temp(0), cin, S_out(0), reg(0));
+	
+	-- Make the rest of the FA operations
+	rest : for i in 1 to Dwidth-1 generate
+		chain : FA port map(A_temp(i), B_temp(i), reg(i-1), S_out(i), reg(i));
+	end generate;
+
+  -- Assign the output signals
+  s <= S_out;
+  cout <= reg(Dwidth-1);
+
+	
 END rtl;
 

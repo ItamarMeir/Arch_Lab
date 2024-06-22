@@ -32,6 +32,12 @@ package aux_package is
             s: OUT STD_LOGIC_VECTOR (Dwidth-1 DOWNTO 0);
          cout: OUT STD_LOGIC );
 	end component;
+	
+	----------------FA---------------------------------------	
+	component FA is
+		PORT (xi, yi, cin: IN std_logic;
+			      s, cout: OUT std_logic);
+	end component;
 
 ----------------ALU---------------------------------------	
 
