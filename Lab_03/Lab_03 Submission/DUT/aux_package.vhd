@@ -139,7 +139,7 @@ package aux_package is
 						  in std_logic;
 			IRin,Pcin,RFout,RFin,Ain,Cin,Cout,Imm1_in,Imm2_in,Mem_in,Mem_out,Mem_wr: --- signals to data path
 						 out std_logic;
-			OPC:  out std_logic_vector(Dwidth-1 downto 0); --- signals to data path
+			OPC:  out std_logic_vector(Awidth-1 downto 0); --- signals to data path
 			Pcsel,RFaddr:		 out std_logic_vector(1 downto 0); --- signals to data path
 			done_Out:    out std_logic	---  signal to top
 	);

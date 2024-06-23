@@ -11,7 +11,7 @@ port(	rst,ena,clk: in std_logic;	---  signals from top
 					  in std_logic;
 		IRin,Pcin,RFout,RFin,Ain,Cin,Cout,Imm1_in,Imm2_in,Mem_in,Mem_out,Mem_wr: --- signals to data path
 				   	 out std_logic;
-		OPC:  out std_logic_vector(Dwidth-1 downto 0); --- signals to data path
+		OPC:  out std_logic_vector(Awidth-1 downto 0); --- signals to data path
 		Pcsel,RFaddr:		 out std_logic_vector(1 downto 0); --- signals to data path
 	    done_Out:    out std_logic	---  signal to top
 );
@@ -40,7 +40,7 @@ architecture behav of Control_Unit is
 -----------------  temp signals to for stored output------------------
 	signal temp_IRin,temp_Pcin,temp_RFout,temp_RFin,temp_Ain,temp_Cin,temp_Cout,temp_Imm1_in,temp_Imm2_in,
 	temp_Mem_in,temp_Mem_out,temp_Mem_wr,temp_done_Out : std_logic; 
-	signal temp_OPC : std_logic_vector(Dwidth-1 downto 0);
+	signal temp_OPC : std_logic_vector(Awidth-1 downto 0);
 	signal temp_Pcsel,temp_RFaddr  :std_logic_vector(1 downto 0);	
 	
 ----------------  end encoding states --------------------	
@@ -66,7 +66,7 @@ begin
 		Mem_out <= temp_Mem_out;
 		Mem_wr <= temp_Mem_wr;
 		RFaddr <= temp_RFaddr;
-		Pcsel <=temp_RFaddr;
+		Pcsel <=temp_Pcsel;
 		OPC <=temp_OPC;
 		done_Out <= temp_done_Out;
 		
