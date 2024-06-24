@@ -26,13 +26,13 @@ architecture rtb of tb_Datapath is
 	SIGNAL IRin,Pcin,RFout,RFin,Ain,Cin,Cout,Imm1_in,Imm2_in,Mem_in,Mem_out,Mem_wr: std_logic;
 	SIGNAL OPC: std_logic_vector(Dwidth-1 downto 0);
 	SIGNAL Pcsel,RFaddr: std_logic_vector(1 downto 0);
-	SIGNAL clk,memEn_ITCM,memEn_DTCM,rst,TBactive: std_logic;
-	SIGNAL WmemData_ITCM: std_logic_vector(Dwidth-1 downto 0);
-	SIGNAL WmemAddr_ITCM: std_logic_vector(Awidth-1 downto 0);
-	SIGNAL WmemAddr_DTCM,RmemAddr_DTCM: std_logic_vector(Dwidth-1 downto 0);
-	SIGNAL WmemData_DTCM: std_logic_vector(Dwidth-1 downto 0);
+	SIGNAL clk,ProgMem_Wr_En,DataMem_Wr_En,rst,TBactive: std_logic;
+	SIGNAL ProgMem_Wr_Data: std_logic_vector(Dwidth-1 downto 0);
+	SIGNAL ProgMem_Wr_Add: std_logic_vector(Awidth-1 downto 0);
+	SIGNAL DataMem_Wr_Add,DataMem_Rd_Add: std_logic_vector(Dwidth-1 downto 0);
+	SIGNAL DataMem_Wr_Data: std_logic_vector(Dwidth-1 downto 0);
 	SIGNAL add,sub,and_in,or_in,xor_in,jmp,jc,jnc,mov,ld,str,done,Nflag,Zflag,Cflag: std_logic;
-	SIGNAL DataOUT_DTCM: std_logic_vector(Dwidth-1 downto 0);
+	SIGNAL DataMem_DataOut: std_logic_vector(Dwidth-1 downto 0);
 
 
 signal	done_FSM : std_logic;
@@ -54,19 +54,19 @@ signal 		DebugSignal		 : std_logic_vector(Dwidth-1 downto 0);
     --    ----- signals from the TB ------
 
     --          ----general----
-	-- 	    clk,memEn_ITCM,memEn_DTCM,rst,TBactive:           in std_logic;
+	-- 	    clk,ProgMem_Wr_En,DataMem_Wr_En,rst,TBactive:           in std_logic;
 	-- 		  ----ITCM-----
-	-- 	    WmemData_ITCM:   in std_logic_vector(Dwidth-1 downto 0);
-	-- 		WmemAddr_ITCM:	 in std_logic_vector(Awidth-1 downto 0);
+	-- 	    ProgMem_Wr_Data:   in std_logic_vector(Dwidth-1 downto 0);
+	-- 		ProgMem_Wr_Add:	 in std_logic_vector(Awidth-1 downto 0);
 
 	-- 		  ----DTCM-----
-	-- 		WmemAddr_DTCM,RmemAddr_DTCM:	
+	-- 		DataMem_Wr_Add,DataMem_Rd_Add:	
 	-- 				in std_logic_vector(Dwidth-1 downto 0);
-	-- 		WmemData_DTCM:	in std_logic_vector(Dwidth-1 downto 0);
+	-- 		DataMem_Wr_Data:	in std_logic_vector(Dwidth-1 downto 0);
     --    ----- signals to the control unit ------
 	-- 	    add,sub,and_in,or_in,xor_in,jmp,jc,jnc,mov,ld,str,done,Nflag,Zflag,Cflag: 
 	-- 				      out std_logic;
-	-- 		DataOUT_DTCM: out std_logic_vector(Dwidth-1 downto 0);
+	-- 		DataMem_DataOut: out std_logic_vector(Dwidth-1 downto 0);
 	
 begin
 
@@ -87,15 +87,15 @@ D0: Datapath generic map (Dwidth, Awidth, dept) port map(
 	Pcsel => Pcsel,
 	RFaddr => RFaddr,
 	clk => clk,
-	memEn_ITCM => memEn_ITCM,
-	memEn_DTCM => memEn_DTCM,
+	ProgMem_Wr_En => ProgMem_Wr_En,
+	DataMem_Wr_En => DataMem_Wr_En,
 	rst => rst,
 	TBactive => TBactive,
-	WmemData_ITCM => WmemData_ITCM,
-	WmemAddr_ITCM => WmemAddr_ITCM,
-	WmemAddr_DTCM => WmemAddr_DTCM,
-	RmemAddr_DTCM => RmemAddr_DTCM,
-	WmemData_DTCM => WmemData_DTCM,
+	ProgMem_Wr_Data => ProgMem_Wr_Data,
+	ProgMem_Wr_Add => ProgMem_Wr_Add,
+	DataMem_Wr_Add => DataMem_Wr_Add,
+	DataMem_Rd_Add => DataMem_Rd_Add,
+	DataMem_Wr_Data => DataMem_Wr_Data,
 	add => add,
 	sub => sub,
 	and_in => and_in,
@@ -111,7 +111,7 @@ D0: Datapath generic map (Dwidth, Awidth, dept) port map(
 	Nflag => Nflag,
 	Zflag => Zflag,
 	Cflag => Cflag,
-	DataOUT_DTCM => DataOUT_DTCM
+	DataMem_DataOut => DataMem_DataOut
 	);
 
 
@@ -208,13 +208,13 @@ end process;
 -- and r1,r1,r3		-- state0 - fetch. state1 - decode. state2, state 3 - execute and.
 -- and r2,r2,r3		-- state0 - fetch. state1 - decode. state2, state 3 - execute and.
 -- sub r6,r2,r1     -- state0 - fetch. state1 - decode. state2, state 3 - execute sub.
--- jc  2			-- carry flag is off.
+-- jc  2			-- state0 - fetch. state1 - decode. carry flag is off.
 -- add r6,r1,r0		-- state0 - fetch. state1 - decode. state2, state 3 - execute add.
--- jmp 1			-- state0 - fetch. state1 - decode. state8 - execute jmp.
+-- jmp 1			-- state0 - fetch. state1 - decode. state9 - execute jmp.
 -- add r6,r0,r0    -- state0 - fetch. state1 - decode. state2, state 3 - execute add.
 -- st  r6,14(r0)	-- state0 - fetch. state1 - decode. state4, state5, state7 - execute st.
 -- done				
--- nop 
+-- nop 				-- state0 - fetch. state1 - decode. state2, state 3 - execute add.
 -- jmp -2			-- state0 - fetch. state1 - decode. state8 - execute jmp.
 
 ---
@@ -231,7 +231,7 @@ StartTb : process
 		Mem_wr	 <= '0';
 		Cout	 <= '0';
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; -- ALU unaffected
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '0';
 		RFin	 <= '0';
 		RFout	 <= '0';
@@ -244,20 +244,20 @@ StartTb : process
 		Mem_out	 <= '0';
 		Mem_in	 <= '0';
 		done_FSM  <= '0';
-
+---------------------------------------------------------------
 -----------------states of:	ld r1,4(r0)	-----------------------------
-
+---------------------------------------------------------
 ------------- state0: Fetch ------------------------
 		wait until clk'EVENT and clk='1'; 
 		
 		Mem_wr	 <= '0';
 		Cout	 <= '0';
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '0';
 		RFin	 <= '0';
 		RFout	 <= '0';
-		RFaddr	 <= "11";   
+		RFaddr	 <= "00";   
 		IRin	 <= '1';
 		PCin	 <= '0';
 		PCsel	 <= "01";	
@@ -272,7 +272,7 @@ StartTb : process
 		Mem_wr	 <= '0';
 		Cout	 <= '0';
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '1'; 
 		RFin	 <= '0';
 		RFout	 <= '1';  
@@ -310,7 +310,7 @@ StartTb : process
 		
 		Cout	 <= '1'; 
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '0';				
 		RFaddr	 <= "10";   
 		IRin	 <= '0';
@@ -328,7 +328,7 @@ StartTb : process
 		wait until clk'EVENT and clk='1'; 
 		Cout	 <= '0';
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '0';				
 		RFaddr	 <= "10";   
 		IRin	 <= '0';
@@ -342,19 +342,20 @@ StartTb : process
 		Mem_out	 <= '1';  
 		RFin	 <= '1';
 		RFout 	 <= '0';
-
+----------------------------------------------------------
 --------------states of: ld  r2,8(r0)	---------------------	
+------------------------------------------------------
 ------------- state0: Fetch ------------------------		
 		wait until clk'EVENT and clk='1'; 
 		
 		Mem_wr	 <= '0';
 		Cout	 <= '0';
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '0';
 		RFin	 <= '0';
 		RFout	 <= '0';
-		RFaddr	 <= "11";   
+		RFaddr	 <= "00";   
 		IRin	 <= '1';
 		PCin	 <= '0';
 		PCsel	 <= "01";	
@@ -370,7 +371,7 @@ StartTb : process
 		Mem_wr	 <= '0';
 		Cout	 <= '0';
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '1'; 
 		RFin	 <= '0';
 		RFout	 <= '1';  
@@ -409,7 +410,7 @@ StartTb : process
 		
 		Cout	 <= '1'; 
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '0';				
 		RFaddr	 <= "10";   
 		IRin	 <= '0';
@@ -428,7 +429,7 @@ StartTb : process
 		wait until clk'EVENT and clk='1'; 
 		Cout	 <= '0';
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '0';				
 		RFaddr	 <= "10";   
 		IRin	 <= '0';
@@ -442,18 +443,19 @@ StartTb : process
 		Mem_out	 <= '1';  
 		RFin	 <= '1';
 		RFout 	 <= '0';
-
+-------------------------------------------------------------
 ---------------------- states for:  mov r3,31-----------------------------
+--------------------------------------------------------
 ------------- state0: Fetch ------------------------	
 		wait until clk'EVENT and clk='1';		
 		Mem_wr	 <= '0';
 		Cout	 <= '0';
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '0';
 		RFin	 <= '0';
 		RFout	 <= '0';
-		RFaddr	 <= "11";   
+		RFaddr	 <= "00";   
 		IRin	 <= '1';
 		PCin	 <= '0';
 		PCsel	 <= "01";	
@@ -468,7 +470,7 @@ StartTb : process
 		Mem_wr	 <= '0';
 		Cout	 <= '0';
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '1'; 
 		RFin	 <= '0';
 		RFout	 <= '1';  
@@ -482,211 +484,37 @@ StartTb : process
 		Mem_in	 <= '0';
 		done_FSM  <= '0';				
 
-------------- Load  ------------------------
--- ItypeState0
+------------- State8: execute  ------------------------
 		wait until clk'EVENT and clk='1'; 		
 		Mem_wr	 <= '0';
-		Cout	 <= '0'; 
-		Cin	 	 <= '1';
-		OPC	 	 <= "0000"; 	
-		Ain	 	 <= '0';
-		RFin	 <= '0';
-		RFout	 <= '0';
-		RFaddr	 <= "10";  		 
-		IRin	 <= '0';
-		PCin	 <= '0';
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '1';
-		Mem_out	 <= '0';			
-		done_FSM  <= '0';
-		Mem_in	 <= '1';
-------------- Load  ------------------------
--- ItypeState1
-		wait until clk'EVENT and clk='1'; 		
-		Cout	 <= '1'; 
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '0';				
-		RFaddr	 <= "10";   
-		IRin	 <= '0';
-		PCin	 <= '0';
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';				
-		done_FSM  <= '0';
-		Mem_out	 <= '0';  
-		RFin	 <= '0'; 
-		RFout	 <= '0'; 
-		Mem_wr	 <= '0';
-		Mem_in	 <= '0';
-------------- Load  ------------------------
--- ItypeState2
-		wait until clk'EVENT and clk='1'; 
 		Cout	 <= '0';
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '0';				
-		RFaddr	 <= "10";   
-		IRin	 <= '0';
-		PCin	 <= '1';	
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';
-		Mem_wr	 <= '0'; 
-		Mem_out	 <= '1';  
-		RFin	 <= '1';
-		RFout 	 <= '0';
--------------------------------------------------------------------------------
----------------------- Instruction For Load - 9D0D-----------------------------
-------------- Fetch ------------------------	
-		wait until clk'EVENT and clk='1';		
-		Mem_wr	 <= '0';
-		Cout	 <= '0';
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '0';
-		RFin	 <= '0';
-		RFout	 <= '0';
-		RFaddr	 <= "11";   
-		IRin	 <= '1';
-		PCin	 <= '0';
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';
-
-------------- Decode ------------------------	
-    	wait until clk'EVENT and clk='1'; 		
-		Mem_wr	 <= '0';
-		Cout	 <= '0';
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '1'; 
-		RFin	 <= '0';
-		RFout	 <= '1';  
-		RFaddr	 <= "01"; 
-		PCsel	 <= "01";		
-		IRin 	 <= '0';
-		PCin	 <= '0';	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';				
-
-------------- Load  ------------------------
--- ItypeState0
-		wait until clk'EVENT and clk='1'; 		
-		Mem_wr	 <= '0';
-		Cout	 <= '0'; 
-		Cin	 	 <= '1';
-		OPC	 	 <= "0000"; 	
-		Ain	 	 <= '0';
-		RFin	 <= '0';
-		RFout	 <= '0';
-		RFaddr	 <= "10";  		 
-		IRin	 <= '0';
-		PCin	 <= '0';
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '1';
-		Mem_out	 <= '0';			
-		done_FSM  <= '0';
-		Mem_in	 <= '1';
-------------- Load  ------------------------
--- ItypeState1
-		wait until clk'EVENT and clk='1'; 		
-		Cout	 <= '1'; 
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '0';				
-		RFaddr	 <= "10";   
-		IRin	 <= '0';
-		PCin	 <= '0';
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';				
-		done_FSM  <= '0';
-		Mem_out	 <= '0';  
-		RFin	 <= '0'; 
-		RFout	 <= '0'; 
-		Mem_wr	 <= '0';
-		Mem_in	 <= '0';
-------------- Load  ------------------------
--- ItypeState2
-		wait until clk'EVENT and clk='1'; 
-		Cout	 <= '0';
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '0';				
-		RFaddr	 <= "10";   
-		IRin	 <= '0';
-		PCin	 <= '1';	
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';
-		Mem_wr	 <= '0'; 
-		Mem_out	 <= '1';  
-		RFin	 <= '1';
-		RFout 	 <= '0';
--------------------------------------------------------------------------------
----------------------- Instruction For Mov - 8101-----------------------------
-------------- Fetch ------------------------	
-		wait until clk'EVENT and clk='1';		
-		Mem_wr	 <= '0';
-		Cout	 <= '0';
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '0';
-		RFin	 <= '0';
-		RFout	 <= '0';
-		RFaddr	 <= "11";   
-		IRin	 <= '1';
-		PCin	 <= '0';
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';
-
-------------- Decode - Mov ------------------------	
-    	wait until clk'EVENT and clk='1'; 		
-		Mem_wr	 <= '0';
-		Cout	 <= '0';
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '0'; 
 		RFin	 <= '1';
 		RFout	 <= '0';  
-		RFaddr	 <= "10";  
+		RFaddr	 <= "10"; 
+		PCsel	 <= "00";		
 		IRin 	 <= '0';
-		PCin	 <= '1';
-		PCsel	 <= "01";				
+		PCin	 <= '0';	
 		Imm1_in	 <= '1';
 		Imm2_in	 <= '0';
 		Mem_out	 <= '0';
 		Mem_in	 <= '0';
-		done_FSM  <= '0';				
--------------------------------------------------------------------------------
----------------------- Instruction For Add - 022D-----------------------------
-------------- Fetch ------------------------	
+		done_FSM  <= '0';	
+------------------------------------------------------------------
+---------------------- states for: mov r4,1	-----------------------------
+--------------------------------------------------------------
+------------- state0: Fetch ------------------------	
 		wait until clk'EVENT and clk='1';		
 		Mem_wr	 <= '0';
 		Cout	 <= '0';
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '0';
 		RFin	 <= '0';
 		RFout	 <= '0';
-		RFaddr	 <= "11";   
+		RFaddr	 <= "00";   
 		IRin	 <= '1';
 		PCin	 <= '0';
 		PCsel	 <= "01";	
@@ -696,321 +524,12 @@ StartTb : process
 		Mem_in	 <= '0';
 		done_FSM  <= '0';
 
-------------- Decode ------------------------	
+-------------state1: Decode ------------------------	
     	wait until clk'EVENT and clk='1'; 		
 		Mem_wr	 <= '0';
 		Cout	 <= '0';
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '1'; 
-		RFin	 <= '0';
-		RFout	 <= '1';  
-		RFaddr	 <= "01";  
-		IRin 	 <= '0';
-		PCin	 <= '0';
-		PCsel	 <= "01";				
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';				
-------------- Add -----------------------------	
---RtypeState0
-    	wait until clk'EVENT and clk='1'; 
-		Mem_wr	 <= '0';
-        Cout	 <= '0';
-        Cin	 	 <= '1'; 
-        Ain	 	 <= '0';
-        RFin	 <= '0';
-        RFout	 <= '1'; 
-        RFaddr	 <= "00";
-        IRin	 <= '0';
-        PCin	 <= '0';
-        PCsel	 <= "01";
-        Imm1_in	 <= '0';
-        Imm2_in	 <= '0';
-        Mem_out	 <= '0';
-        Mem_in	 <= '0';
-        done_FSM  <= '0';
-		OPC <= "0000";
-------------- Add -----------------------------	
---RtypeState1
-    	wait until clk'EVENT and clk='1'; 
-		Mem_wr	 <= '0';
-		Cout	 <= '1';  
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '0';
-		RFin	 <= '1';
-		RFout	 <= '0';
-		RFaddr	 <= "10";   
-		IRin	 <= '0';
-		PCin	 <= '1';
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';
--------------------------------------------------------------------------------
----------------------- Instruction For Add - 0349-----------------------------
-------------- Fetch ------------------------	
-		wait until clk'EVENT and clk='1';		
-		Mem_wr	 <= '0';
-		Cout	 <= '0';
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '0';
-		RFin	 <= '0';
-		RFout	 <= '0';
-		RFaddr	 <= "11";   
-		IRin	 <= '1';
-		PCin	 <= '0';
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';
-
-------------- Decode ------------------------	
-    	wait until clk'EVENT and clk='1'; 		
-		Mem_wr	 <= '0';
-		Cout	 <= '0';
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '1'; 
-		RFin	 <= '0';
-		RFout	 <= '1';  
-		RFaddr	 <= "01";  
-		IRin 	 <= '0';
-		PCin	 <= '0';
-		PCsel	 <= "01";				
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';				
-------------- Add -----------------------------	
---RtypeState0
-    	wait until clk'EVENT and clk='1'; 
-		Mem_wr	 <= '0';
-        Cout	 <= '0';
-        Cin	 	 <= '1'; 
-        Ain	 	 <= '0';
-        RFin	 <= '0';
-        RFout	 <= '1'; 
-        RFaddr	 <= "00";
-        IRin	 <= '0';
-        PCin	 <= '0';
-        PCsel	 <= "01";
-        Imm1_in	 <= '0';
-        Imm2_in	 <= '0';
-        Mem_out	 <= '0';
-        Mem_in	 <= '0';
-        done_FSM  <= '0';
-		OPC <= "0000";
-------------- Add -----------------------------	
---RtypeState1
-    	wait until clk'EVENT and clk='1'; 
-		Mem_wr	 <= '0';
-		Cout	 <= '1';  
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '0';
-		RFin	 <= '1';
-		RFout	 <= '0';
-		RFaddr	 <= "10";   
-		IRin	 <= '0';
-		PCin	 <= '1';
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';
--------------------------------------------------------------------------------
----------------------- Instruction For Add - 1623-----------------------------
-------------- Fetch ------------------------	
-		wait until clk'EVENT and clk='1';		
-		Mem_wr	 <= '0';
-		Cout	 <= '0';
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '0';
-		RFin	 <= '0';
-		RFout	 <= '0';
-		RFaddr	 <= "11";   
-		IRin	 <= '1';
-		PCin	 <= '0';
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';
-
-------------- Decode ------------------------	
-    	wait until clk'EVENT and clk='1'; 		
-		Mem_wr	 <= '0';
-		Cout	 <= '0';
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '1'; 
-		RFin	 <= '0';
-		RFout	 <= '1';  
-		RFaddr	 <= "01";  
-		IRin 	 <= '0';
-		PCin	 <= '0';
-		PCsel	 <= "01";				
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';				
-------------- Sub -----------------------------	
---RtypeState0
-    	wait until clk'EVENT and clk='1'; 
-		Mem_wr	 <= '0';
-        Cout	 <= '0';
-        Cin	 	 <= '1'; 
-        Ain	 	 <= '0';
-        RFin	 <= '0';
-        RFout	 <= '1'; 
-        RFaddr	 <= "00";
-        IRin	 <= '0';
-        PCin	 <= '0';
-        PCsel	 <= "01";
-        Imm1_in	 <= '0';
-        Imm2_in	 <= '0';
-        Mem_out	 <= '0';
-        Mem_in	 <= '0';
-        done_FSM  <= '0';
-		OPC 	 <= "0001";
-------------- Sub -----------------------------	
---RtypeState1
-    	wait until clk'EVENT and clk='1'; 
-		Mem_wr	 <= '0';
-		Cout	 <= '1';  
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '0';
-		RFin	 <= '1';
-		RFout	 <= '0';
-		RFaddr	 <= "10";   
-		IRin	 <= '0';
-		PCin	 <= '1';
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';
--------------------------------------------------------------------------------
----------------------- Instruction For Add - 0610-----------------------------
-------------- Fetch ------------------------	
-		wait until clk'EVENT and clk='1';		
-		Mem_wr	 <= '0';
-		Cout	 <= '0';
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '0';
-		RFin	 <= '0';
-		RFout	 <= '0';
-		RFaddr	 <= "11";   
-		IRin	 <= '1';
-		PCin	 <= '0';
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';
-
-------------- Decode ------------------------	
-    	wait until clk'EVENT and clk='1'; 		
-		Mem_wr	 <= '0';
-		Cout	 <= '0';
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '1'; 
-		RFin	 <= '0';
-		RFout	 <= '1';  
-		RFaddr	 <= "01";  
-		IRin 	 <= '0';
-		PCin	 <= '0';
-		PCsel	 <= "01";				
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';				
-------------- Add -----------------------------	
---RtypeState0
-    	wait until clk'EVENT and clk='1'; 
-		Mem_wr	 <= '0';
-        Cout	 <= '0';
-        Cin	 	 <= '1'; 
-        Ain	 	 <= '0';
-        RFin	 <= '0';
-        RFout	 <= '1'; 
-        RFaddr	 <= "00";
-        IRin	 <= '0';
-        PCin	 <= '0';
-        PCsel	 <= "01";
-        Imm1_in	 <= '0';
-        Imm2_in	 <= '0';
-        Mem_out	 <= '0';
-        Mem_in	 <= '0';
-        done_FSM  <= '0';
-		OPC 	 <= "0000";
-------------- Add -----------------------------	
---RtypeState1
-    	wait until clk'EVENT and clk='1'; 
-		Mem_wr	 <= '0';
-		Cout	 <= '1';  
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '0';
-		RFin	 <= '1';
-		RFout	 <= '0';
-		RFaddr	 <= "10";   
-		IRin	 <= '0';
-		PCin	 <= '1';
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';
-
--------------------------------------------------------------------------------
----------------------- Instruction For Store - A60E-----------------------------
-------------- Fetch ------------------------	
-		wait until clk'EVENT and clk='1';		
-		Mem_wr	 <= '0';
-		Cout	 <= '0';
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
-		Ain	 	 <= '0';
-		RFin	 <= '0';
-		RFout	 <= '0';
-		RFaddr	 <= "11";   
-		IRin	 <= '1';
-		PCin	 <= '0';
-		PCsel	 <= "01";	
-		Imm1_in	 <= '0';
-		Imm2_in	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '0';
-		done_FSM  <= '0';
-
-------------- Decode ------------------------	
-    	wait until clk'EVENT and clk='1'; 		
-		Mem_wr	 <= '0';
-		Cout	 <= '0';
-		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '1'; 
 		RFin	 <= '0';
 		RFout	 <= '1';  
@@ -1024,9 +543,559 @@ StartTb : process
 		Mem_in	 <= '0';
 		done_FSM  <= '0';				
 
-------------- Store  ------------------------
--- ItypeState0
+------------- State8: execute  ------------------------
 		wait until clk'EVENT and clk='1'; 		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0'; 
+		RFin	 <= '1';
+		RFout	 <= '0';  
+		RFaddr	 <= "10"; 
+		PCsel	 <= "00";		
+		IRin 	 <= '0';
+		PCin	 <= '0';	
+		Imm1_in	 <= '1';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';			
+-----------------------------------------------------
+--------------States for: and r1,r1,r3	------------------------
+----------------------------------------
+------------ state0: Fetch ------------------------	
+		wait until clk'EVENT and clk='1';		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '0';
+		RFout	 <= '0';
+		RFaddr	 <= "00";   
+		IRin	 <= '1';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+
+-------------state1: Decode ------------------------	
+    	wait until clk'EVENT and clk='1'; 		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '1'; 
+		RFin	 <= '0';
+		RFout	 <= '1';  
+		RFaddr	 <= "01"; 
+		PCsel	 <= "01";		
+		IRin 	 <= '0';
+		PCin	 <= '0';	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';				
+-------------state2: And -----------------------------	
+    	wait until clk'EVENT and clk='1'; 
+		Mem_wr	 <= '0';
+        Cout	 <= '0';
+        Cin	 	 <= '1';
+		OPC 	<= "0010"; 
+        Ain	 	 <= '0';
+        RFin	 <= '0';
+        RFout	 <= '1'; 
+        RFaddr	 <= "00";
+        IRin	 <= '0';
+        PCin	 <= '0';
+        PCsel	 <= "00";
+        Imm1_in	 <= '0';
+        Imm2_in	 <= '0';
+        Mem_out	 <= '0';
+        Mem_in	 <= '0';
+        done_FSM  <= '0';
+		
+-------------state3: And -----------------------------		
+    	wait until clk'EVENT and clk='1'; 
+		Mem_wr	 <= '0';
+		Cout	 <= '1';  
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '1';
+		RFout	 <= '0';
+		RFaddr	 <= "10";   
+		IRin	 <= '0';
+		PCin	 <= '0';
+		PCsel	 <= "00";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+--------------------------------------------
+--------------States for: and r2,r2,r3	-----------------------
+----------------------------------------
+------------ state0: Fetch ------------------------	
+		wait until clk'EVENT and clk='1';		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '0';
+		RFout	 <= '0';
+		RFaddr	 <= "00";   
+		IRin	 <= '1';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+
+-------------state1: Decode ------------------------	
+    	wait until clk'EVENT and clk='1'; 		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '1'; 
+		RFin	 <= '0';
+		RFout	 <= '1';  
+		RFaddr	 <= "01"; 
+		PCsel	 <= "01";		
+		IRin 	 <= '0';
+		PCin	 <= '0';	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';				
+-------------state2: And -----------------------------	
+    	wait until clk'EVENT and clk='1'; 
+		Mem_wr	 <= '0';
+        Cout	 <= '0';
+        Cin	 	 <= '1';
+		OPC 	<= "0010"; 
+        Ain	 	 <= '0';
+        RFin	 <= '0';
+        RFout	 <= '1'; 
+        RFaddr	 <= "00";
+        IRin	 <= '0';
+        PCin	 <= '0';
+        PCsel	 <= "00";
+        Imm1_in	 <= '0';
+        Imm2_in	 <= '0';
+        Mem_out	 <= '0';
+        Mem_in	 <= '0';
+        done_FSM  <= '0';
+		
+-------------state3: And -----------------------------		
+    	wait until clk'EVENT and clk='1'; 
+		Mem_wr	 <= '0';
+		Cout	 <= '1';  
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '1';
+		RFout	 <= '0';
+		RFaddr	 <= "10";   
+		IRin	 <= '0';
+		PCin	 <= '0';
+		PCsel	 <= "00";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+--------------------------------------------
+--------------States for: sub r6,r2,r1	-----------------------
+----------------------------------------
+------------ state0: Fetch ------------------------	
+		wait until clk'EVENT and clk='1';		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '0';
+		RFout	 <= '0';
+		RFaddr	 <= "00";   
+		IRin	 <= '1';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+
+-------------state1: Decode ------------------------	
+    	wait until clk'EVENT and clk='1'; 		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '1'; 
+		RFin	 <= '0';
+		RFout	 <= '1';  
+		RFaddr	 <= "01"; 
+		PCsel	 <= "01";		
+		IRin 	 <= '0';
+		PCin	 <= '0';	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';				
+-------------state2: Sub -----------------------------	
+    	wait until clk'EVENT and clk='1'; 
+		Mem_wr	 <= '0';
+        Cout	 <= '0';
+        Cin	 	 <= '1';
+		OPC 	<= "0001"; 
+        Ain	 	 <= '0';
+        RFin	 <= '0';
+        RFout	 <= '1'; 
+        RFaddr	 <= "00";
+        IRin	 <= '0';
+        PCin	 <= '0';
+        PCsel	 <= "00";
+        Imm1_in	 <= '0';
+        Imm2_in	 <= '0';
+        Mem_out	 <= '0';
+        Mem_in	 <= '0';
+        done_FSM  <= '0';
+		
+-------------state3: Sub -----------------------------		
+    	wait until clk'EVENT and clk='1'; 
+		Mem_wr	 <= '0';
+		Cout	 <= '1';  
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '1';
+		RFout	 <= '0';
+		RFaddr	 <= "10";   
+		IRin	 <= '0';
+		PCin	 <= '0';
+		PCsel	 <= "00";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+---------------------------------------------------------------
+-----------------states of:	jc  2	-----------------------------
+---------------------------------------------------------
+------------- state0: Fetch ------------------------
+		wait until clk'EVENT and clk='1'; 
+		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '0';
+		RFout	 <= '0';
+		RFaddr	 <= "00";   
+		IRin	 <= '1';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+------------- state1: Decode ------------------------	
+    	wait until clk'EVENT and clk='1'; 
+		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '1'; 
+		RFin	 <= '0';
+		RFout	 <= '1';  
+		RFaddr	 <= "01"; 
+		PCsel	 <= "01";		
+		IRin 	 <= '0';
+		PCin	 <= '0';	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';			
+--------------------------------------------
+--------------States for: add r6,r1,r0	-----------------------
+----------------------------------------
+------------ state0: Fetch ------------------------	
+		wait until clk'EVENT and clk='1';		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '0';
+		RFout	 <= '0';
+		RFaddr	 <= "00";   
+		IRin	 <= '1';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+
+-------------state1: Decode ------------------------	
+    	wait until clk'EVENT and clk='1'; 		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '1'; 
+		RFin	 <= '0';
+		RFout	 <= '1';  
+		RFaddr	 <= "01"; 
+		PCsel	 <= "01";		
+		IRin 	 <= '0';
+		PCin	 <= '0';	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';				
+-------------state2: add -----------------------------	
+    	wait until clk'EVENT and clk='1'; 
+		Mem_wr	 <= '0';
+        Cout	 <= '0';
+        Cin	 	 <= '1';
+		OPC 	<= "0000"; 
+        Ain	 	 <= '0';
+        RFin	 <= '0';
+        RFout	 <= '1'; 
+        RFaddr	 <= "00";
+        IRin	 <= '0';
+        PCin	 <= '0';
+        PCsel	 <= "00";
+        Imm1_in	 <= '0';
+        Imm2_in	 <= '0';
+        Mem_out	 <= '0';
+        Mem_in	 <= '0';
+        done_FSM  <= '0';
+		
+-------------state3: add -----------------------------		
+    	wait until clk'EVENT and clk='1'; 
+		Mem_wr	 <= '0';
+		Cout	 <= '1';  
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '1';
+		RFout	 <= '0';
+		RFaddr	 <= "10";   
+		IRin	 <= '0';
+		PCin	 <= '0';
+		PCsel	 <= "00";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+
+---------------------------------------------------------------
+-----------------states of:	jmp  1	-----------------------------
+---------------------------------------------------------
+------------- state0: Fetch ------------------------
+		wait until clk'EVENT and clk='1'; 
+		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '0';
+		RFout	 <= '0';
+		RFaddr	 <= "00";   
+		IRin	 <= '1';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+------------- state1: Decode ------------------------	
+    	wait until clk'EVENT and clk='1'; 
+		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '1'; 
+		RFin	 <= '0';
+		RFout	 <= '1';  
+		RFaddr	 <= "01"; 
+		PCsel	 <= "01";		
+		IRin 	 <= '0';
+		PCin	 <= '0';	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';	
+
+	------------- state9: jmp ------------------------
+		wait until clk'EVENT and clk='1'; 
+		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '0';
+		RFout	 <= '0';
+		RFaddr	 <= "00";   
+		IRin	 <= '0';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';	
+
+--------------------------------------------
+--------------States for: add r6,r0,r0 	-----------------------
+----------------------------------------
+------------ state0: Fetch ------------------------	
+		wait until clk'EVENT and clk='1';		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '0';
+		RFout	 <= '0';
+		RFaddr	 <= "00";   
+		IRin	 <= '1';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+
+-------------state1: Decode ------------------------	
+    	wait until clk'EVENT and clk='1'; 		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '1'; 
+		RFin	 <= '0';
+		RFout	 <= '1';  
+		RFaddr	 <= "01"; 
+		PCsel	 <= "01";		
+		IRin 	 <= '0';
+		PCin	 <= '0';	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';				
+-------------state2: add -----------------------------	
+    	wait until clk'EVENT and clk='1'; 
+		Mem_wr	 <= '0';
+        Cout	 <= '0';
+        Cin	 	 <= '1';
+		OPC 	<= "0000"; 
+        Ain	 	 <= '0';
+        RFin	 <= '0';
+        RFout	 <= '1'; 
+        RFaddr	 <= "00";
+        IRin	 <= '0';
+        PCin	 <= '0';
+        PCsel	 <= "00";
+        Imm1_in	 <= '0';
+        Imm2_in	 <= '0';
+        Mem_out	 <= '0';
+        Mem_in	 <= '0';
+        done_FSM  <= '0';
+		
+-------------state3: add -----------------------------		
+    	wait until clk'EVENT and clk='1'; 
+		Mem_wr	 <= '0';
+		Cout	 <= '1';  
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '1';
+		RFout	 <= '0';
+		RFaddr	 <= "10";   
+		IRin	 <= '0';
+		PCin	 <= '0';
+		PCsel	 <= "00";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+
+---------------------------------------------------------------
+-----------------states of:	ld r1,4(r0)	-----------------------------
+---------------------------------------------------------
+------------- state0: Fetch ------------------------
+		wait until clk'EVENT and clk='1'; 
+		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '0';
+		RFout	 <= '0';
+		RFaddr	 <= "00";   
+		IRin	 <= '1';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+------------- state1: Decode ------------------------	
+    	wait until clk'EVENT and clk='1'; 
+		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '1'; 
+		RFin	 <= '0';
+		RFout	 <= '1';  
+		RFaddr	 <= "01"; 
+		PCsel	 <= "01";		
+		IRin 	 <= '0';
+		PCin	 <= '0';	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';				
+-------------state4: Load  ------------------------
+
+		wait until clk'EVENT and clk='1'; 
+		
 		Mem_wr	 <= '0';
 		Cout	 <= '0'; 
 		Cin	 	 <= '1';
@@ -1042,13 +1111,13 @@ StartTb : process
 		Imm2_in	 <= '1';
 		Mem_out	 <= '0';			
 		done_FSM  <= '0';
-		Mem_in	 <= '0';
-------------- Store  ------------------------
--- ItypeState1
-		wait until clk'EVENT and clk='1'; 		
+		Mem_in	 <= '1';
+-------------state5: Load  ------------------------
+		wait until clk'EVENT and clk='1'; 
+		
 		Cout	 <= '1'; 
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '0';				
 		RFaddr	 <= "10";   
 		IRin	 <= '0';
@@ -1057,17 +1126,16 @@ StartTb : process
 		Imm1_in	 <= '0';
 		Imm2_in	 <= '0';				
 		done_FSM  <= '0';
+		Mem_out	 <= '0';  
+		RFin	 <= '0'; 
 		RFout	 <= '0'; 
-		Mem_wr	 <= '0'; 
-		RFin	 <= '0';
-		Mem_out	 <= '0';
-		Mem_in	 <= '1';  
-------------- Store  ------------------------
--- ItypeState2
+		Mem_wr	 <= '0';
+		Mem_in	 <= '0';
+------------- state6: Load ------------------------
 		wait until clk'EVENT and clk='1'; 
 		Cout	 <= '0';
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; 
+		OPC	 	 <= "0000"; 
 		Ain	 	 <= '0';				
 		RFaddr	 <= "10";   
 		IRin	 <= '0';
@@ -1077,10 +1145,251 @@ StartTb : process
 		Imm2_in	 <= '0';
 		Mem_in	 <= '0';
 		done_FSM  <= '0';
-		Mem_out	 <= '0';	
-		RFout	 <= '1'; 
-		Mem_wr	 <= '1'; 
+		Mem_wr	 <= '0'; 
+		Mem_out	 <= '1';  
+		RFin	 <= '1';
+		RFout 	 <= '0';
+----------------------------------------------------------
+--------------states of: st r6,14(r0)	---------------------	
+------------------------------------------------------
+------------- state0: Fetch ------------------------		
+		wait until clk'EVENT and clk='1'; 
+		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
 		RFin	 <= '0';
+		RFout	 <= '0';
+		RFaddr	 <= "00";   
+		IRin	 <= '1';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+
+-------------state1: Decode ------------------------	
+    	wait until clk'EVENT and clk='1'; 
+		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '1'; 
+		RFin	 <= '0';
+		RFout	 <= '1';  
+		RFaddr	 <= "01"; 
+		PCsel	 <= "01";		
+		IRin 	 <= '0';
+		PCin	 <= '0';	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';				
+
+-------------state4: st  ------------------------
+
+		wait until clk'EVENT and clk='1'; 
+		
+		Mem_wr	 <= '0';
+		Cout	 <= '0'; 
+		Cin	 	 <= '1';
+		OPC	 	 <= "0000"; 	
+		Ain	 	 <= '0';
+		RFin	 <= '0';
+		RFout	 <= '0';
+		RFaddr	 <= "10";  		 
+		IRin	 <= '0';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '1';
+		Mem_out	 <= '0';			
+		done_FSM  <= '0';
+		Mem_in	 <= '1';
+-------------state5: st  ------------------------
+		wait until clk'EVENT and clk='1'; 
+		
+		Cout	 <= '1'; 
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';				
+		RFaddr	 <= "10";   
+		IRin	 <= '0';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';				
+		done_FSM  <= '0';
+		Mem_out	 <= '0';  
+		RFin	 <= '0'; 
+		RFout	 <= '0'; 
+		Mem_wr	 <= '0';
+		Mem_in	 <= '0';
+-------------state7: st  ------------------------
+
+		wait until clk'EVENT and clk='1'; 
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';				
+		RFaddr	 <= "10";   
+		IRin	 <= '0';
+		PCin	 <= '0';	
+		PCsel	 <= "00";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+		Mem_wr	 <= '1'; 
+		Mem_out	 <= '0';  
+		RFin	 <= '0';
+		RFout 	 <= '1';
+
+--------------------------------------------
+--------------States for: nop (add r0,r0,r0) 	-----------------------
+----------------------------------------
+------------ state0: Fetch ------------------------	
+		wait until clk'EVENT and clk='1';		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '0';
+		RFout	 <= '0';
+		RFaddr	 <= "00";   
+		IRin	 <= '1';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+
+-------------state1: Decode ------------------------	
+    	wait until clk'EVENT and clk='1'; 		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '1'; 
+		RFin	 <= '0';
+		RFout	 <= '1';  
+		RFaddr	 <= "01"; 
+		PCsel	 <= "01";		
+		IRin 	 <= '0';
+		PCin	 <= '0';	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';				
+-------------state2: nop -----------------------------	
+    	wait until clk'EVENT and clk='1'; 
+		Mem_wr	 <= '0';
+        Cout	 <= '0';
+        Cin	 	 <= '1';
+		OPC 	<= "0000"; 
+        Ain	 	 <= '0';
+        RFin	 <= '0';
+        RFout	 <= '1'; 
+        RFaddr	 <= "00";
+        IRin	 <= '0';
+        PCin	 <= '0';
+        PCsel	 <= "00";
+        Imm1_in	 <= '0';
+        Imm2_in	 <= '0';
+        Mem_out	 <= '0';
+        Mem_in	 <= '0';
+        done_FSM  <= '0';
+		
+-------------state3: nop -----------------------------		
+    	wait until clk'EVENT and clk='1'; 
+		Mem_wr	 <= '0';
+		Cout	 <= '1';  
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '1';
+		RFout	 <= '0';
+		RFaddr	 <= "10";   
+		IRin	 <= '0';
+		PCin	 <= '0';
+		PCsel	 <= "00";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+
+---------------------------------------------------------------
+-----------------states of:	jmp  -2	-----------------------------
+---------------------------------------------------------
+------------- state0: Fetch ------------------------
+		wait until clk'EVENT and clk='1'; 
+		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '0';
+		RFout	 <= '0';
+		RFaddr	 <= "00";   
+		IRin	 <= '1';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';
+------------- state1: Decode ------------------------	
+    	wait until clk'EVENT and clk='1'; 
+		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '1'; 
+		RFin	 <= '0';
+		RFout	 <= '1';  
+		RFaddr	 <= "01"; 
+		PCsel	 <= "01";		
+		IRin 	 <= '0';
+		PCin	 <= '0';	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';	
+
+	------------- state9: jmp ------------------------
+		wait until clk'EVENT and clk='1'; 
+		
+		Mem_wr	 <= '0';
+		Cout	 <= '0';
+		Cin	 	 <= '0';
+		OPC	 	 <= "0000"; 
+		Ain	 	 <= '0';
+		RFin	 <= '0';
+		RFout	 <= '0';
+		RFaddr	 <= "00";   
+		IRin	 <= '0';
+		PCin	 <= '0';
+		PCsel	 <= "01";	
+		Imm1_in	 <= '0';
+		Imm2_in	 <= '0';
+		Mem_out	 <= '0';
+		Mem_in	 <= '0';
+		done_FSM  <= '0';	
 
 --******************************************************************
 
@@ -1090,7 +1399,7 @@ StartTb : process
 		Mem_wr	 <= '0';
 		Cout	 <= '0';
 		Cin	 	 <= '0';
-		OPC	 	 <= "1111"; -- ALU unaffected
+		OPC	 	 <= "0000"; -- ALU unaffected
 		Ain	 	 <= '0';
 		RFin	 <= '0';
 		RFout	 <= '0';

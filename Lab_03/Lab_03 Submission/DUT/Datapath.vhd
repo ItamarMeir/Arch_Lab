@@ -16,19 +16,19 @@ entity Datapath is
        ----- signals from the TB ------
 
              ----general----
-		    clk,memEn_ITCM,memEn_DTCM,rst,TBactive:           in std_logic;
+		    clk,ProgMem_Wr_En,DataMem_Wr_En,rst,TBactive:           in std_logic;
 			  ----ITCM-----
-		    WmemData_ITCM:   in std_logic_vector(Dwidth-1 downto 0);
-			WmemAddr_ITCM:	 in std_logic_vector(Awidth-1 downto 0);
+		    ProgMem_Wr_Data:   in std_logic_vector(Dwidth-1 downto 0);
+			ProgMem_Wr_Add:	 in std_logic_vector(Awidth-1 downto 0);
 
 			  ----DTCM-----
-			WmemAddr_DTCM,RmemAddr_DTCM:	
+			DataMem_Wr_Add,DataMem_Rd_Add:	
 					in std_logic_vector(Dwidth-1 downto 0);
-			WmemData_DTCM:	in std_logic_vector(Dwidth-1 downto 0);
+			DataMem_Wr_Data:	in std_logic_vector(Dwidth-1 downto 0);
        ----- signals to the control unit ------
 		    add,sub,and_in,or_in,xor_in,jmp,jc,jnc,mov,ld,str,done,Nflag,Zflag,Cflag: 
 					      out std_logic;
-			DataOUT_DTCM: out std_logic_vector(Dwidth-1 downto 0)
+			DataMem_DataOut: out std_logic_vector(Dwidth-1 downto 0)
 	);
 end Datapath;
 
@@ -61,6 +61,21 @@ begin
 ----------------------INTERNAL-----------------------------------------------
 
 -----------------BUS CONECTION --------------------------------------------
+
+----------------------------------------- BiDir Bus ------------------------------------------
+-- -- BidirPin            - (Dout, en, Din, IOpin), DOUT input of buffer, DIN input of module
+-- BusConnectionToRF: BidirPin			generic map(Dwidth)	port map(RDataRF, RFout, WDataRF, BUS_Datapath);
+-- BusConnectionToALU: BidirPin		generic map(Dwidth)	port map(CregOut, Cout, B, BUS_Datapath); 
+-- BusConnectionToDataMem: BidirPin	generic map(Dwidth)	port map(dataOutDataMem, Mem_out, RdAddrDataMem, BUS_Datapath);
+-- BusConnectionToImm1: BidirPin		generic map(Dwidth)	port map(Immidiate, Imm1_in, WDataRF, BUS_Datapath);
+-- BusConnectionToImm2: BidirPin		generic map(Dwidth)	port map(Immidiate, Imm2_in, WDataRF, BUS_Datapath);
+
+-- -- Immidiate Sign Extention 
+-- Immidiate <= 	SXT(IR_Immid, Dwidth) when Imm1_in ='1' else
+-- 				"000000000000" & IR_Immid(RegSize-1 downto 0)		when Imm2_in = '1' else
+-- 				unaffected;
+
+
 busRF: BidirPin generic map(Dwidth) port map(Dout_RF,Dout_C,Dout_imm1,Dout_imm2,Dout_DTCM,
                                              RFout,RFin,Cout,Imm1_in,Imm2_in,Mem_out,BUS_Datapath); 
 
@@ -98,10 +113,10 @@ regPC: reg generic map(Dwidth) port map(Dout_Csel,PCin,clk,Dout_PCreg);
 PCsl: PC generic map(Dwidth,Awidth) port map(Dout_PCreg,IR_data(7 downto 0),Pcsel,Dout_Csel);  
 
 -----------------------progMEM - ITCM----------------------------------------------------
-ProgM: ProgMem port map(clk,memEn_ITCM,WmemData_ITCM,Dout_Csel(3 downto 0),ITCM_to_IR); 
+ProgM: ProgMem port map(clk,ProgMem_Wr_En,ProgMem_Wr_Data,Dout_Csel(3 downto 0),ITCM_to_IR); 
 -----------------------dataMEM - DTCM----------------------------------------------------
 
-	readAddr_DTCM <= WmemAddr_DTCM when TBactive = '1'  else  ------ adress from TB or BUS
+	readAddr_DTCM <= DataMem_Wr_Add when TBactive = '1'  else  ------ adress from TB or BUS
 		             BUS_Datapath ;
 
      ------ WRITE ADRESS -----
@@ -112,13 +127,13 @@ ProgM: ProgMem port map(clk,memEn_ITCM,WmemData_ITCM,Dout_Csel(3 downto 0),ITCM_
 	 end if;
     end process;
 
-  	writAddr_DTCM <= WmemAddr_DTCM when TBactive = '1'  else  ------ adress from TB or BUS
+  	writAddr_DTCM <= DataMem_Wr_Add when TBactive = '1'  else  ------ adress from TB or BUS
 		             Din_adrr_DTCM ;
 
-	datain_DTCM <= WmemData_DTCM when TBactive = '1'  else  ------ adress from TB or BUS
+	datain_DTCM <= DataMem_Wr_Data when TBactive = '1'  else  ------ adress from TB or BUS
 		            BUS_Datapath ;
 
-    wre_DTCM    <= memEn_DTCM when TBactive = '1'  else  ------ adress from TB or BUS
+    wre_DTCM    <= DataMem_Wr_En when TBactive = '1'  else  ------ adress from TB or BUS
 		            Mem_wr ;
 
 

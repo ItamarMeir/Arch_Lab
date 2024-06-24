@@ -170,19 +170,19 @@ package aux_package is
        ----- signals from the TB ------
 
              ----general----
-		    clk,memEn_ITCM,memEn_DTCM,rst,TBactive:           in std_logic;
+		    clk,ProgMem_Wr_En,DataMem_Wr_En,rst,TBactive:           in std_logic;
 			  ----ITCM-----
-		    WmemData_ITCM:   in std_logic_vector(Dwidth-1 downto 0);
-			WmemAddr_ITCM:	 in std_logic_vector(Awidth-1 downto 0);
+		    ProgMem_Wr_Data:   in std_logic_vector(Dwidth-1 downto 0);
+			ProgMem_Wr_Add:	 in std_logic_vector(Awidth-1 downto 0);
 
 			  ----DTCM-----
-			WmemAddr_DTCM,RmemAddr_DTCM:	
+			DataMem_Wr_Add,DataMem_Rd_Add:	
 					in std_logic_vector(Dwidth-1 downto 0);
-			WmemData_DTCM:	in std_logic_vector(Dwidth-1 downto 0);
+			DataMem_Wr_Data:	in std_logic_vector(Dwidth-1 downto 0);
        ----- signals to the control unit ------
 		    add,sub,and_in,or_in,xor_in,jmp,jc,jnc,mov,ld,str,done,Nflag,Zflag,Cflag: 
 					      out std_logic;
-			DataOUT_DTCM: out std_logic_vector(Dwidth-1 downto 0)
+			DataMem_DataOut: out std_logic_vector(Dwidth-1 downto 0)
 		);
 	end component;	
 
