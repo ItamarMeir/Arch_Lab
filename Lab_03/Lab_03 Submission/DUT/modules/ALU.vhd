@@ -62,7 +62,7 @@ C_tmp <= AdderSub_out when (OPC = "0000" or OPC = "0001") else
 C <= C_tmp;
 
 Cflag <= cout_tmp when OPC = "0000" or OPC = "0001" else
-         '0';
+         unaffected;
 
  -- Process to calculate tmp_Z
   tmp_Z_Process: process(C_tmp)
@@ -76,9 +76,9 @@ Cflag <= cout_tmp when OPC = "0000" or OPC = "0001" else
     end loop;
   end process tmp_Z_Process;
 
-  Zflag <= tmp_Z; -- Assign the result to Zflag
+  Zflag <= tmp_Z when (OPC = "0000" or OPC = "0001" or OPC = "0010" or OPC = "0011" or OPC = "0100") else unaffected;  -- Assign the result to Zflag
 
-Nflag <= C_tmp(Dwidth-1);
+Nflag <= C_tmp(Dwidth-1) when (OPC = "0000" or OPC = "0001" or OPC = "0010" or OPC = "0011" or OPC = "0100") else unaffected;  -- Assign the result to Nflag
     
 
 END ALU_arch;

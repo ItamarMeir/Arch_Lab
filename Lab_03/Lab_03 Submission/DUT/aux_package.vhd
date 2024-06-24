@@ -154,6 +154,37 @@ package aux_package is
 				add,sub,and_in,or_in,xor_in,jmp,jc,jnc,mov,ld,str,done:  out std_logic		
 		);
 	end component;
-	
+--------------------Datapath---------------------------------------
+
+	component Datapath is
+		generic( Dwidth: integer:=16;
+			 Awidth: integer:=4;
+			 dept:   integer:=64);
+
+		port(   ----- signals from the control unit ------
+            IRin,Pcin,RFout,RFin,Ain,Cin,Cout,Imm1_in,Imm2_in,Mem_in,Mem_out,Mem_wr: 
+				   	      in std_logic;
+			OPC:          in std_logic_vector(Dwidth-1 downto 0); 
+			Pcsel,RFaddr: in std_logic_vector(1 downto 0); 
+
+       ----- signals from the TB ------
+
+             ----general----
+		    clk,memEn_ITCM,memEn_DTCM,rst,TBactive:           in std_logic;
+			  ----ITCM-----
+		    WmemData_ITCM:   in std_logic_vector(Dwidth-1 downto 0);
+			WmemAddr_ITCM:	 in std_logic_vector(Awidth-1 downto 0);
+
+			  ----DTCM-----
+			WmemAddr_DTCM,RmemAddr_DTCM:	
+					in std_logic_vector(Dwidth-1 downto 0);
+			WmemData_DTCM:	in std_logic_vector(Dwidth-1 downto 0);
+       ----- signals to the control unit ------
+		    add,sub,and_in,or_in,xor_in,jmp,jc,jnc,mov,ld,str,done,Nflag,Zflag,Cflag: 
+					      out std_logic;
+			DataOUT_DTCM: out std_logic_vector(Dwidth-1 downto 0)
+		);
+	end component;	
+
 
 end aux_package;

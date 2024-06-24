@@ -21,10 +21,10 @@ architecture behav of Control_Unit is
 
 -------- TwoHot encoding states   -----------
 	subtype state is std_logic_vector(5 downto 0); ----- 6 bit represent 15 states we take it becase to save the option to add states
-	constant reset_state  : state := "000000";
-	constant state0 : state := "000011";	
-	constant state1 : state := "000101";
-	constant state2 : state := "001001";
+	constant reset_state  : state := "000000";	--- reset state
+	constant state0 : state := "000011";	--- fetch state
+	constant state1 : state := "000101";	--- decode state
+	constant state2 : state := "001001";	--- Rtype state
 	constant state3 : state := "010001";
 	constant state4 : state := "100001";
 	constant state5 : state := "000110";
