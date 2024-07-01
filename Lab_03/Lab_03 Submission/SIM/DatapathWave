@@ -1,0 +1,62 @@
+onerror {resume}
+quietly WaveActivateNextPane {} 0
+add wave -noupdate -color Magenta /tb_datapath/IRin
+add wave -noupdate -color Magenta /tb_datapath/Pcin
+add wave -noupdate -color Magenta /tb_datapath/RFout
+add wave -noupdate -color Magenta /tb_datapath/RFin
+add wave -noupdate -color Magenta /tb_datapath/Ain
+add wave -noupdate -color Magenta /tb_datapath/Cin
+add wave -noupdate -color Magenta /tb_datapath/Cout
+add wave -noupdate -color Magenta /tb_datapath/Imm1_in
+add wave -noupdate -color Magenta /tb_datapath/Imm2_in
+add wave -noupdate -color Magenta /tb_datapath/Mem_in
+add wave -noupdate -color Magenta /tb_datapath/Mem_out
+add wave -noupdate -color Magenta /tb_datapath/Mem_wr
+add wave -noupdate -color Magenta /tb_datapath/OPC
+add wave -noupdate -color Magenta /tb_datapath/Pcsel
+add wave -noupdate -color Magenta /tb_datapath/RFaddr
+add wave -noupdate /tb_datapath/clk
+add wave -noupdate /tb_datapath/rst
+add wave -noupdate /tb_datapath/TBactive
+add wave -noupdate -color Sienna /tb_datapath/add
+add wave -noupdate -color Sienna /tb_datapath/sub
+add wave -noupdate -color Sienna /tb_datapath/and_in
+add wave -noupdate -color Sienna /tb_datapath/or_in
+add wave -noupdate -color Sienna /tb_datapath/xor_in
+add wave -noupdate -color Sienna /tb_datapath/jmp
+add wave -noupdate -color Sienna /tb_datapath/jc
+add wave -noupdate -color Sienna /tb_datapath/jnc
+add wave -noupdate -color Sienna /tb_datapath/mov
+add wave -noupdate -color Sienna /tb_datapath/ld
+add wave -noupdate -color Sienna /tb_datapath/str
+add wave -noupdate /tb_datapath/Nflag
+add wave -noupdate /tb_datapath/Zflag
+add wave -noupdate /tb_datapath/Cflag
+add wave -noupdate /tb_datapath/done_FSM
+add wave -noupdate /tb_datapath/TBWrEnProgMem
+add wave -noupdate /tb_datapath/TBWrEnDataMem
+add wave -noupdate /tb_datapath/TBdataInDataMem
+add wave -noupdate /tb_datapath/TBdataInProgMem
+add wave -noupdate /tb_datapath/TBWrAddrProgMem
+add wave -noupdate /tb_datapath/TBWrAddrDataMem
+add wave -noupdate -color Orange -radix decimal /tb_datapath/TBdataOutDataMem
+add wave -noupdate /tb_datapath/donePmemIn
+add wave -noupdate /tb_datapath/doneDmemIn
+TreeUpdate [SetDefaultTree]
+WaveRestoreCursors {{Cursor 1} {3280209 ps} 0}
+quietly wave cursor active 1
+configure wave -namecolwidth 220
+configure wave -valuecolwidth 116
+configure wave -justifyvalue left
+configure wave -signalnamewidth 0
+configure wave -snapdistance 10
+configure wave -datasetprefix 0
+configure wave -rowmargin 4
+configure wave -childrowmargin 2
+configure wave -gridoffset 0
+configure wave -gridperiod 1
+configure wave -griddelta 40
+configure wave -timeline 0
+configure wave -timelineunits ns
+update
+WaveRestoreZoom {1506561 ps} {7365286 ps}

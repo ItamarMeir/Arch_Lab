@@ -1,0 +1,35 @@
+onerror {resume}
+quietly WaveActivateNextPane {} 0
+add wave -noupdate /tb_top/done_FSM
+add wave -noupdate /tb_top/TBactive
+add wave -noupdate /tb_top/clk
+add wave -noupdate /tb_top/en
+add wave -noupdate /tb_top/rst
+add wave -noupdate /tb_top/TBWrEnProgMem
+add wave -noupdate /tb_top/TBWrEnDataMem
+add wave -noupdate /tb_top/TBdataInDataMem
+add wave -noupdate /tb_top/TBdataInProgMem
+add wave -noupdate /tb_top/TBWrAddrProgMem
+add wave -noupdate /tb_top/TBWrAddrDataMem
+add wave -noupdate /tb_top/TBRdAddrDataMem
+add wave -noupdate /tb_top/TBdataOutDataMem
+add wave -noupdate /tb_top/donePmemIn
+add wave -noupdate /tb_top/doneDmemIn
+TreeUpdate [SetDefaultTree]
+WaveRestoreCursors {{Cursor 1} {4306088 ps} 0}
+quietly wave cursor active 1
+configure wave -namecolwidth 187
+configure wave -valuecolwidth 100
+configure wave -justifyvalue left
+configure wave -signalnamewidth 0
+configure wave -snapdistance 10
+configure wave -datasetprefix 0
+configure wave -rowmargin 4
+configure wave -childrowmargin 2
+configure wave -gridoffset 0
+configure wave -gridperiod 1
+configure wave -griddelta 40
+configure wave -timeline 0
+configure wave -timelineunits ns
+update
+WaveRestoreZoom {2393972 ps} {14610844 ps}

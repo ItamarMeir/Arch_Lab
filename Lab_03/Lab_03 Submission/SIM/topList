@@ -1,0 +1,23 @@
+onerror {resume}
+add list -width 18 /tb_top/done_FSM
+add list /tb_top/TBactive
+add list /tb_top/clk
+add list /tb_top/en
+add list /tb_top/rst
+add list /tb_top/TBWrEnProgMem
+add list /tb_top/TBWrEnDataMem
+add list /tb_top/TBdataInDataMem
+add list /tb_top/TBdataInProgMem
+add list /tb_top/TBWrAddrProgMem
+add list /tb_top/TBWrAddrDataMem
+add list /tb_top/TBRdAddrDataMem
+add list /tb_top/TBdataOutDataMem
+add list /tb_top/donePmemIn
+add list /tb_top/doneDmemIn
+configure list -usestrobe 0
+configure list -strobestart {0 ps} -strobeperiod {0 ps}
+configure list -usesignaltrigger 1
+configure list -delta collapse
+configure list -signalnamewidth 0
+configure list -datasetprefix 0
+configure list -namelimit 5
